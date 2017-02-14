@@ -1,0 +1,23 @@
+---
+version: 1
+disable_existing_loggers: False
+formatters:
+    simple:
+        format: "%(name)-20s %(asctime)s %(levelname)-8s: %(message)s"
+handlers:
+    console:
+        class: logging.StreamHandler
+        level: INFO
+        formatter: simple
+        stream: ext://sys.stdout
+    mplog:
+        class: mplog.MultiProcessingLog
+        level: DEBUG
+        formatter: simple
+        name: mplog.log
+        mode: w
+        maxsize: 104857600
+        rotate: 1
+root:
+    level: DEBUG
+    handlers: [console, mplog]
