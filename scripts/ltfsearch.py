@@ -149,7 +149,7 @@ if __name__ == '__main__':
 
     #  #Strip version name
 
-    irf = config.get("Analysis","irf")
+    irf = configuration.get("Analysis","irf")
 
     gtburstIrf = "_".join(irf.split("_")[:-1]).replace("P8R2", "P8")
 
