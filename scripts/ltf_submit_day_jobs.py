@@ -7,6 +7,8 @@ import socket
 import subprocess
 
 
+from fermi_blind_search.which import which
+
 def are_we_at_slac():
     
     hostname = socket.getfqdn()
@@ -85,6 +87,9 @@ if __name__ == "__main__":
 
     _ = raw_input("\nHit enter to continue, or crtl-c to stop")
 
+    # Find where the executable ltf_analyze_one_day is
+    ltf_analyze_one_day_script_path = which("ltf_analyze_one_day.py")
+
     i = -1
 
     for i, date in enumerate(date_range):
@@ -94,13 +99,13 @@ if __name__ == "__main__":
         if are_we_at_slac():
              
             cmd_line = ('''bsub -W 03:00 -Rinet -n 4 -R "span[hosts=1] rusage[mem=1000]"'''
-                        ''' ltf_analyze_one_day.py %s 86400.0 '''
-                        '''%s''' % (date, args.config.config_file))
+                        ''' %s %s 86400.0 '''
+                        '''%s''' % (ltf_analyze_one_day_script_path, date.date(), args.config.config_file))
         
         else:
         
             cmd_line = ("qsub -F '%s 86400.0 "
-                        "%s' ltf_analyze_one_day.py" % (date, args.config.config_file))
+                        "%s' %s" % (date.date(), args.config.config_file, ltf_analyze_one_day_script_path))
 
         print("\nSubmitting job %i:" % (i+1))
         print(cmd_line)
