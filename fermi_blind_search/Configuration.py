@@ -18,3 +18,5 @@ assert os.path.exists(confPath), "Configuration path does not exist!"
 
 configuration.read([confPath])
 
+# Monkey patch adding the filename
+configuration.config_file = confPath

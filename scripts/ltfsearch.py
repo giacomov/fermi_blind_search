@@ -5,6 +5,7 @@ import time
 
 from fermi_blind_search.data_files import get_data_file_path
 
+
 def computeSpread(points):
     from GtBurst.angularDistance import getAngularDistance
     minD = []
@@ -23,11 +24,11 @@ if __name__ == '__main__':
     parser.add_argument('--date', help='''Start date in ISO format. Ex: "2010-12-31 23:53:25.2", or
                         "2010-12-31T23:53:25.2"''', type=str, required=True)
     parser.add_argument('--duration', help='Time window duration (in seconds)', type=float, required=True)
-    parser.add_argument('--irfs', help='Instrument Response Function to use', type=str,
-                        required=False, default='P7REP_SOURCE_V15')
-    parser.add_argument('--probability',
-                        help='Null hyp. probability for the excesses. Default: 6.33e-05 (i.e., 5 sigma)',
-                        default=6.33e-05, required=False, type=float)
+    # parser.add_argument('--irfs', help='Instrument Response Function to use', type=str,
+    #                     required=False, default='P7REP_SOURCE_V15')
+    # parser.add_argument('--probability',
+    #                     help='Null hyp. probability for the excesses. Default: 6.33e-05 (i.e., 5 sigma)',
+    #                     default=6.33e-05, required=False, type=float)
     parser.add_argument('--loglevel', help='''Logging level: DEBUG (very verbose) or INFO (normal).
                                            Note that this will not change the verbosity of the logfile,
                                            which is controlled by the logging.yaml configuration file.''',
@@ -148,7 +149,9 @@ if __name__ == '__main__':
 
     #  #Strip version name
 
-    gtburstIrf = "_".join(args.irfs.split("_")[:-1]).replace("P8R2", "P8")
+    irf = config.get("Analysis","irf")
+
+    gtburstIrf = "_".join(irf.split("_")[:-1]).replace("P8R2", "P8")
 
     # Get number of cpus to use
 
@@ -192,6 +195,9 @@ if __name__ == '__main__':
                                     ft1file,
                                     ft2file,
                                     simft1=None)
+
+    # Null-hyp probability for Bayesian Blocks
+    nullp = float(config.get("Analysis","nullp"))
 
     ltf = ltf.AllSkySearch(ras,
                            decs,
