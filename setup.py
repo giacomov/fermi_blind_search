@@ -8,5 +8,5 @@ setup(
     author='giacomov',
     author_email='giacomov@stanford.edu',
     description='',
-    scripts=['scripts/*.py']
+    scripts=['scripts/ltfsearch.py']
 )
