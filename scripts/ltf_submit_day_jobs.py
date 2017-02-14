@@ -74,7 +74,7 @@ if __name__ == "__main__":
     parser.add_argument('--config', help="Path to configuration file",
                         type=valid_configuration, required=True)
     parser.add_argument('--simulate', help="If active, do not submit jobs, just print the commands",
-                        action="store_false")
+                        action="store_true")
     args = parser.parse_args()
     
     date_range = range_of_dates(args.start_date, args.end_date)
