@@ -11,7 +11,7 @@ handlers:
         formatter: simple
         stream: ext://sys.stdout
     mplog:
-        class: mplog.MultiProcessingLog
+        class: fermi_blind_search.mplog.MultiProcessingLog
         level: DEBUG
         formatter: simple
         name: mplog.log
