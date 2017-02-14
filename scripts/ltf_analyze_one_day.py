@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-# PBS -l walltime=01:00:00
-# PBS -l nodes=1:ppn=20
-# PBS -l vmem=30gb
+#PBS -l walltime=01:00:00
+#PBS -l nodes=1:ppn=20
+#PBS -l vmem=30gb
 
 
 import datetime
