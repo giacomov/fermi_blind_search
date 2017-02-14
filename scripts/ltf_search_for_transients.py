@@ -30,10 +30,11 @@ if __name__ == "__main__":
     parser.add_argument("--out_file", help="Name of text file containing list of possible transients", type=str,
                         required=True)
 
-    parser.add_argument("--config_file", help="Name of configuration file (use this, or set the LTF_CONFIG_FILE variable",
-                        default=None, required=False)
-
     # optional
+    parser.add_argument("--duration", help="Duration of analysis in seconds (default: 86400)", default=86400)
+    parser.add_argument("--config_file",
+                        help="Name of configuration file (use this, or set the LTF_CONFIG_FILE variable",
+                        default=None, required=False)
     parser.add_argument("--loglevel", help="Level of log detail (DEBUG, INFO)", default='info')
     parser.add_argument("--logfile", help="Name of logfile for the ltfsearch.py script", default='ltfsearch.log')
     parser.add_argument("--workdir", help="Path of work directory", default=os.getcwd())
