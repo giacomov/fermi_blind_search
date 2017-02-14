@@ -124,7 +124,7 @@ if __name__ == "__main__":
         
         else:
 
-            cmd_line = ("qsub -j oe -o %s.log -F '%s 86400.0 %s %s' %s" % (logfile_path,
+            cmd_line = ("qsub -j oe -o %s -F '%s 86400.0 %s %s' %s" % (logfile_path,
                                                                            date.date(), args.config.config_file, outdir,
                                                                            ltf_analyze_one_day_script_path))
 
