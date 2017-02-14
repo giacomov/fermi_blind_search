@@ -52,7 +52,7 @@ if __name__ == '__main__':
     import yaml
     import sys
     import pyfits
-    from scripts import ltf
+    from fermi_blind_search import ltf
 
     if (args.workdir != '.'):
         os.chdir(args.workdir)
