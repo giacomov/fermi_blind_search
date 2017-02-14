@@ -7,6 +7,8 @@
 
 import os, shutil, traceback,sys, subprocess
 import socket
+import datetime
+
 
 def are_we_at_slac():
     
@@ -19,23 +21,11 @@ def are_we_at_slac():
         
         return False
 
-# Add the path to the python modules
 
-if are_we_at_slac():
+def make_analysis(date, duration, config_file, workdir, outfile):
     
-    PACKAGE_PATH = '/nfs/farm/g/glast/u/giacomov/blindTransientSearch'
-
-else:
-    
-    PACKAGE_PATH = '/home/giacomov/blindTransientSearch'
-
-sys.path.append(PACKAGE_PATH)
-
-def make_analysis(date, duration, irfs, probability, workdir):
-    
-    cmd_line = ("%s/ltfsearch.py --date %s --duration %s --irfs %s" 
-                " --probability %s --loglevel info --workdir %s" 
-                % (PACKAGE_PATH, date,duration,irfs,probability,workdir))
+    cmd_line = ("ltf_search_for_transients.py --date %sT00:00:00 --duration %s --config_file %s "
+                "--workdir %s --out_file %s" % (date, duration, config_file, workdir, outfile))
     
     print(cmd_line)
     
@@ -51,14 +41,12 @@ if __name__=="__main__":
   
   # Process command line
   
-  date, duration, irfs, probability = sys.argv[1:]
-  
+  date, duration, config_file = sys.argv[1:]
+
   # Print options
   print("About to execute job with these parameters:\n")
   print("date : %s" % date)
   print("duration : %s" % duration)
-  print("irfs : %s" % irfs)
-  print("probability : %s" % probability)
   
   print("\n\n\nRunning on the computer farm")
   print("This is my environment:")
@@ -100,10 +88,14 @@ if __name__=="__main__":
   
   #now you have to go there
   os.chdir(workdir)
-  
+
+  # Name for output file
+  dt = datetime.datetime.strptime(date,"%Y-%m-%d")
+  outfile = dt.strftime("%y%m%d_res.txt")
+
   try:
     
-    make_analysis(date, duration, irfs, probability, workdir)
+    make_analysis(date, duration, config_file, workdir, outfile)
   
   except:
     

@@ -22,19 +22,20 @@ if __name__ == "__main__":
     group.add_argument('--date', help='date specifying file to load')
     group.add_argument('--inp_fts', help='filenames of ft1 and ft2 input, separated by a comma (ex: foo.ft1,bar.ft2)')
 
-    parser.add_argument("--irf", help="Instrument response function name to be used", type=str,
-                        required=True)
-    parser.add_argument("--probability", help="Probability of null hypothesis", type=float, default=1e-5)
-    parser.add_argument("--min_dist", help="Distance above which regions are not considered to overlap", type=float,
-                        required=True)
+    parser.add_argument("--config_file", help="Name of configuration file", required=True)
+
     parser.add_argument("--out_file", help="Name of text file containing list of possible transients", type=str,
                         required=True)
 
+    # parser.add_argument("--irf", help="Instrument response function name to be used", type=str,
+    #                     required=True)
+    # parser.add_argument("--probability", help="Probability of null hypothesis", type=float, default=1e-5)
+    # parser.add_argument("--min_dist", help="Distance above which regions are not considered to overlap", type=float,
+    #                     required=True)
+
     # optional
     parser.add_argument("--duration", help="Duration of analysis in seconds (default: 86400)", default=86400)
-    parser.add_argument("--config_file",
-                        help="Name of configuration file (use this, or set the LTF_CONFIG_FILE variable",
-                        default=None, required=False)
+
     parser.add_argument("--loglevel", help="Level of log detail (DEBUG, INFO)", default='info')
     parser.add_argument("--logfile", help="Name of logfile for the ltfsearch.py script", default='ltfsearch.log')
     parser.add_argument("--workdir", help="Path of work directory", default=os.getcwd())
@@ -46,11 +47,11 @@ if __name__ == "__main__":
     # parse the arguments
     args = parser.parse_args()
 
-    if args.config_file is not None:
+    # Set the configuration file
 
-        os.environ["LTF_CONFIG_FILE"] = args.config_file
+    os.environ["LTF_CONFIG_FILE"] = args.config_file
 
-    temp_file = 'active_file.txt'
+    temp_file = '__%s' % os.path.basename(args.outfile)
 
     # if using real data
 
@@ -58,8 +59,8 @@ if __name__ == "__main__":
 
         # bayesian blocks
 
-        cmd_line = 'ltfsearch.py --date %s --duration %s --irfs %s --probability %s --loglevel %s --logfile %s ' \
-                   '--workdir %s --outfile %s' % (args.date, args.duration, args.irf, args.probability, args.loglevel,
+        cmd_line = 'ltfsearch.py --date %s --duration %s --loglevel %s --logfile %s ' \
+                   '--workdir %s --outfile %s' % (args.date, args.duration, args.loglevel,
                                                   args.logfile, args.workdir, temp_file)
 
         execute_command(cmd_line)
