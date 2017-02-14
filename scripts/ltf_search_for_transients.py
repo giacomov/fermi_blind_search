@@ -65,14 +65,6 @@ if __name__ == "__main__":
 
         execute_command(cmd_line)
 
-        # remove redundant triggers
-
-        cmd_line = 'ltf_remove_redundant_triggers.py --in_list %s --min_dist %s --out_list %s' % (temp_file,
-                                                                                                  args.min_dist,
-                                                                                                  args.out_file)
-
-        execute_command(cmd_line)
-
     # else using simulated data
     else:
 
@@ -96,12 +88,11 @@ if __name__ == "__main__":
 
         execute_command(cmd_line)
 
-        # remove redundant triggers
+    # remove redundant triggers
 
-        cmd_line = 'ltf_remove_redundant_triggers.py.py --in_list active_file.txt ' \
-                   '--min_dist %s --out_list %s' %(args.min_dist, args.out_file)
+    cmd_line = 'ltf_remove_redundant_triggers.py --in_list %s --out_list %s' % (temp_file, args.out_file)
 
-        execute_command(cmd_line)
+    execute_command(cmd_line)
 
     os.remove(temp_file)
 

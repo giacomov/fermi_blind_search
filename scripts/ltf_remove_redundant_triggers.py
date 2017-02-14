@@ -201,8 +201,8 @@ if __name__ == "__main__":
     # add the arguments needed to the parser
     parser.add_argument("--in_list", help="Text file containing the output list from the BB code", required=True,
                         type=str)
-    parser.add_argument("--min_dist", help="distance above which regions are not considered to overlap",
-                        type=float, required=True)
+    # parser.add_argument("--min_dist", help="distance above which regions are not considered to overlap",
+    #                     type=float, required=True)
     parser.add_argument("--out_list", help="Name for the output file, which will contained the pruned list",
                         required=True, type=str)
 
@@ -223,8 +223,11 @@ if __name__ == "__main__":
         # an array of lines, but just one line. Fix that
         data = np.array([data])
 
+    from fermi_blind_search.Configuration import configuration
+
     # check for multiple triggers by same event,
-    result = check_nearest(data, args.min_dist)
+    min_dist = float(configuration.get("Post processing", "cluster_distance"))
+    result = check_nearest(data, min_dist)
 
     # import pdb;pdb.set_trace()
 

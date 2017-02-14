@@ -29,6 +29,11 @@ Max_duration = 21600
 # Minimum number of counts in excess
 Min_counts = 3
 
+[Post processing]
+# Candidate transients within this distance from each other (in deg) will
+# be checked and marked as the same transient if they overlap in time
+cluster_distance = 15.0
+
 [Hardware]
 ncpus = 10
 '''
