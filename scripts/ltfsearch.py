@@ -204,7 +204,7 @@ if __name__ == '__main__':
                            medianDistance + spread,
                            timeInterval,
                            analysisDefinition,
-                           args.probability,
+                           nullp,
                            cpus=ncpus)
 
     logger.info("Searching for excesses in %s regions with %s CPUs..." % (ras.shape[0], ncpus))
