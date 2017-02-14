@@ -17,11 +17,9 @@ except:
 
 import matplotlib.pyplot as plt
 
-#from GtBurst.angularDistance import getAngularDistance
-
 from fermi_blind_search.bkge.angular_distance import getAngularDistance
-
 from fermi_blind_search.Configuration import configuration
+from fermi_blind_search.data_files import get_data_file_path
 
 
 class myFT1File(object):
@@ -238,10 +236,12 @@ def countsInInterval(t, t1, t2):
 
 
 def get_theta_lookup_file(ra, dec):
+
     root_for_interpolator = "ra%.3f-dec%.3f_rateForInterpolator" % (ra, dec)
 
-    return os.path.join(configuration.get('ROIBackgroundEstimator', 'datapath'),
-                        '%s.npz' % root_for_interpolator)
+    path = get_data_file_path('data/ROIBackgroundEstimator_data')
+
+    return os.path.join(path, '%s.npz' % root_for_interpolator)
 
 
 class ROIBackgroundEstimatorDataMaker(object):
@@ -489,7 +489,7 @@ class ROIBackgroundEstimatorDataMaker(object):
             plt.plot(xx, yy)
             plt.ylim([0, max(yi) * 1.1])
 
-            image_file = os.path.join(configuration.get('ROIBackgroundEstimator', 'datapath'),
+            image_file = os.path.join(get_data_file_path('data/ROIBackgroundEstimator_data'),
                                       rate_lookup_table_file.replace("npz", "png"))
 
             fig.savefig(image_file)
@@ -602,7 +602,7 @@ class ROIBackgroundEstimator(object):
         lookup_table_file = get_theta_lookup_file(self.dataFt1.ra, self.dataFt1.dec)
 
         # This is to cope with the fact that sometimes (I don't know why) the name of the
-        # file is slitghly different
+        # file is slightly different
 
         if not os.path.exists(lookup_table_file):
             # Try with a slightly different RA
@@ -610,20 +610,18 @@ class ROIBackgroundEstimator(object):
             ra = float(os.path.basename(lookup_table_file).split("-")[0].replace("ra", "")[:-2])
 
             other_tokens = "-".join(os.path.basename(lookup_table_file).split("-")[1:])
-            
-            #configuration.get('ROIBackgroundEstimator','datapath')
-            
-            search_expr = os.path.join(configuration.get('ROIBackgroundEstimator','datapath'), 
-                                           'ra%s*%s' % (ra, other_tokens))
-            
-            files_ = glob.glob( search_expr )
-            
+
+            search_expr = os.path.join(get_data_file_path('data/ROIBackgroundEstimator_data'),
+                                       'ra%s*%s' % (ra, other_tokens))
+
+            files_ = glob.glob(search_expr)
+
             if len(files_)==0:
-                
+
                 raise RuntimeError("Could not find data files for background estimation (%s)" % (search_expr))
-           
+
             else:
-            
+
                 lookup_table_file = files_[0]
 
         if os.path.exists(lookup_table_file):
