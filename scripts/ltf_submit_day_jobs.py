@@ -73,6 +73,10 @@ if __name__ == "__main__":
                         type=valid_date, required=True)
     parser.add_argument('--config', help="Path to configuration file",
                         type=valid_configuration, required=True)
+    parser.add_argument('--outdir', help="Directory for results (must be on NFS/AFS)",
+                        type=str, required=True)
+    parser.add_argument('--logdir', help="Directory for logs (must be on NFS/AFS)",
+                        type=str, required=True)
     parser.add_argument('--simulate', help="If active, do not submit jobs, just print the commands",
                         action="store_true")
     args = parser.parse_args()
@@ -87,6 +91,18 @@ if __name__ == "__main__":
 
     _ = raw_input("\nHit enter to continue, or crtl-c to stop")
 
+    # Create output and logs directory, if they do not exists
+    outdir = os.path.abspath(os.path.expandvars(os.path.expanduser(args.outdir)))
+    logdir = os.path.abspath(os.path.expandvars(os.path.expanduser(args.logdir)))
+
+    if not os.path.exists(outdir):
+
+        os.makedirs(outdir)
+
+    if not os.path.exists(logdir):
+
+        os.makedirs(logdir)
+
     # Find where the executable ltf_analyze_one_day is
     ltf_analyze_one_day_script_path = which("ltf_analyze_one_day.py")
 
@@ -95,17 +111,22 @@ if __name__ == "__main__":
     for i, date in enumerate(date_range):
         
         #2015-09-14T09:50:45 86400.0 P8R2_TRANSIENT010E_V6 1e-6
-        
+
+        logfile_root = date.strftime("%y%m%d")  # this is like 100101 for 2010-01-01
+
+        logfile_path = os.path.join(logdir, "%s.log" % logfile_root)
+
         if are_we_at_slac():
              
             cmd_line = ('''bsub -W 03:00 -Rinet -n 4 -R "span[hosts=1] rusage[mem=1000]"'''
-                        ''' %s %s 86400.0 '''
-                        '''%s''' % (ltf_analyze_one_day_script_path, date.date(), args.config.config_file))
+                        ''' %s %s 86400.0 %s %s''' % (ltf_analyze_one_day_script_path, date.date(),
+                                                      args.config.config_file, outdir))
         
         else:
-        
-            cmd_line = ("qsub -F '%s 86400.0 "
-                        "%s' %s" % (date.date(), args.config.config_file, ltf_analyze_one_day_script_path))
+
+            cmd_line = ("qsub -j oe -o %s.log -F '%s 86400.0 %s %s' %s" % (logfile_path,
+                                                                           date.date(), args.config.config_file, outdir,
+                                                                           ltf_analyze_one_day_script_path))
 
         print("\nSubmitting job %i:" % (i+1))
         print(cmd_line)
