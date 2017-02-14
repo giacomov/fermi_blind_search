@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     if args.config_file is not None:
 
-        os.environ.set("LTF_CONFIG_FILE", args.config_file)
+        os.environ["LTF_CONFIG_FILE"] = args.config_file
 
     temp_file = 'active_file.txt'
 
