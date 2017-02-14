@@ -71,6 +71,8 @@ if __name__ == "__main__":
                         type=valid_date, required=True)
     parser.add_argument('--config', help="Path to configuration file",
                         type=valid_configuration, required=True)
+    parser.add_argument('--simulate', help="If active, do not submit jobs, just print the commands",
+                        action="store_false")
     args = parser.parse_args()
     
     date_range = range_of_dates(args.start_date, args.end_date)
@@ -92,17 +94,29 @@ if __name__ == "__main__":
         if are_we_at_slac():
              
             cmd_line = ('''bsub -W 03:00 -Rinet -n 4 -R "span[hosts=1] rusage[mem=1000]"'''
-                        ''' analyze_one_day.py %s 86400.0 '''
+                        ''' ltf_analyze_one_day.py %s 86400.0 '''
                         '''%s''' % (date, args.config.config_file))
         
         else:
         
             cmd_line = ("qsub -F '%s 86400.0 "
-                        "%s' analyze_one_day.py" % (date, args.config.config_file))
+                        "%s' ltf_analyze_one_day.py" % (date, args.config.config_file))
 
         print("\nSubmitting job %i:" % (i+1))
         print(cmd_line)
-        
-        subprocess.check_call(cmd_line,shell=True)
 
-    print("\n\nSubmitted %i jobs" % (i+1))
+        if not args.simulate:
+
+            subprocess.check_call(cmd_line,shell=True)
+
+        else:
+
+            print("(simulation is on, no job submitted)")
+
+    if not args.simulate:
+
+        print("\n\nSubmitted %i jobs" % (i+1))
+
+    else:
+
+        print("\n\nWould have submitted %i jobs" % (i+1))

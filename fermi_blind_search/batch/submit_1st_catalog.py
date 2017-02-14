@@ -32,13 +32,13 @@ if __name__=="__main__":
         if are_we_at_slac():
              
             cmd_line = ('''bsub -W 03:00 -n 4 -R "span[hosts=1] rusage[mem=1000]"'''
-                        ''' analyze_one_day.py %sT00:00:00 86400.0 '''
+                        ''' ltf_analyze_one_day.py %sT00:00:00 86400.0 '''
                         '''P8R2_SOURCE_V6 1e-6''' % date)
         
         else:
         
             cmd_line = ("qsub -F '%sT00:00:00 86400.0 "
-                        "P8R2_TRANSIENT010E_V6 1e-5' analyze_one_day.py" % date)
+                        "P8R2_TRANSIENT010E_V6 1e-5' ltf_analyze_one_day.py" % date)
                 
         print(cmd_line)
         
