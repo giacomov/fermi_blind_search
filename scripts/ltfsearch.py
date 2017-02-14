@@ -197,7 +197,7 @@ if __name__ == '__main__':
                                     simft1=None)
 
     # Null-hyp probability for Bayesian Blocks
-    nullp = float(config.get("Analysis","nullp"))
+    nullp = float(configuration.get("Analysis","nullp"))
 
     ltf = ltf.AllSkySearch(ras,
                            decs,
