@@ -7,5 +7,6 @@ setup(
               'fermi_blind_search.grid_creation'],
     author='giacomov',
     author_email='giacomov@stanford.edu',
-    description=''
+    description='',
+    scripts=['scripts/*.py']
 )
