@@ -90,10 +90,10 @@ if __name__ == "__main__":
 
     # remove redundant triggers
 
-    cmd_line = 'ltf_remove_redundant_triggers.py --in_list %s --out_list %s' % (temp_file, args.out_file)
+    cmd_line = 'ltf_remove_redundant_triggers.py --in_list %s --out_list %s' % (temp_file, args.outfile)
 
     execute_command(cmd_line)
 
     os.remove(temp_file)
 
-    print "\nSearch complete. Results in %s" % args.out_file
+    print "\nSearch complete. Results in %s" % args.outfile
