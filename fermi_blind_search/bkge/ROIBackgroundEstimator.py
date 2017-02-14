@@ -239,7 +239,7 @@ def get_theta_lookup_file(ra, dec):
 
     root_for_interpolator = "ra%.3f-dec%.3f_rateForInterpolator" % (ra, dec)
 
-    path = get_data_file_path('data/ROIBackgroundEstimator_data')
+    path = get_data_file_path('ROIBackgroundEstimator_data')
 
     return os.path.join(path, '%s.npz' % root_for_interpolator)
 
@@ -489,7 +489,7 @@ class ROIBackgroundEstimatorDataMaker(object):
             plt.plot(xx, yy)
             plt.ylim([0, max(yi) * 1.1])
 
-            image_file = os.path.join(get_data_file_path('data/ROIBackgroundEstimator_data'),
+            image_file = os.path.join(get_data_file_path('ROIBackgroundEstimator_data'),
                                       rate_lookup_table_file.replace("npz", "png"))
 
             fig.savefig(image_file)
@@ -611,7 +611,7 @@ class ROIBackgroundEstimator(object):
 
             other_tokens = "-".join(os.path.basename(lookup_table_file).split("-")[1:])
 
-            search_expr = os.path.join(get_data_file_path('data/ROIBackgroundEstimator_data'),
+            search_expr = os.path.join(get_data_file_path('ROIBackgroundEstimator_data'),
                                        'ra%s*%s' % (ra, other_tokens))
 
             files_ = glob.glob(search_expr)
