@@ -1,10 +1,13 @@
+import argparse
+
+
 default_config = '''
 
 [Analysis]
 # Zenith cut for gtmktime
-zenith_cut = 100
+zenith_cut = 95
 # Theta cut for gtmktime
-theta_cut = 65
+theta_cut = 60
 # Emin and emax in MeV
 emin = 100
 emax = 100000
@@ -15,8 +18,17 @@ Min_counts = 3
 
 [Hardware]
 ncpus = 10
-
-[ROIBackgroundEstimator]
-datapath: /home/giacomov/develop/blindTransientSearch/ROIBackgroundEstimator_data
-
 '''
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description='Create a configuration file for the LAT Transient factory')
+
+    parser.add_argument('--outfile', help="name for output configuration file", required=True)
+
+    args = parser.parse_args()
+
+    with open(args.outfile, 'w+') as f:
+
+        f.write(default_config)
