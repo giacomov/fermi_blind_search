@@ -58,9 +58,9 @@ if __name__ == "__main__":
 
         # bayesian blocks
 
-        cmd_line = 'ltfsearch.py --date %s --duration 86400.0 --irfs %s --probability %s --loglevel %s --logfile %s ' \
-                   '--workdir %s --outfile %s' % (args.date, args.irf, args.probability, args.loglevel, args.logfile,
-                                                  args.workdir, temp_file)
+        cmd_line = 'ltfsearch.py --date %s --duration %s --irfs %s --probability %s --loglevel %s --logfile %s ' \
+                   '--workdir %s --outfile %s' % (args.date, args.duration, args.irf, args.probability, args.loglevel,
+                                                  args.logfile, args.workdir, temp_file)
 
         execute_command(cmd_line)
 
