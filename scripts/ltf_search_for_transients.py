@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--config_file", help="Name of configuration file", required=True)
 
-    parser.add_argument("--out_file", help="Name of text file containing list of possible transients", type=str,
+    parser.add_argument("--outfile", help="Name of text file containing list of possible transients", type=str,
                         required=True)
 
     # parser.add_argument("--irf", help="Instrument response function name to be used", type=str,
