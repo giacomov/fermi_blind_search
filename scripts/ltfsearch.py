@@ -3,6 +3,7 @@ import argparse
 import datetime
 import time
 
+from fermi_blind_search.data_files import get_data_file_path
 
 def computeSpread(points):
     from GtBurst.angularDistance import getAngularDistance
@@ -58,7 +59,8 @@ if __name__ == '__main__':
         os.chdir(args.workdir)
 
     # Set up the logger
-    path = os.path.join(configuration.get('Internal', 'packagePath'), 'logging.yaml')
+    path = get_data_file_path('logging.yaml')
+
     if os.path.exists(path):
 
         with open(path, 'rt') as f:
@@ -158,7 +160,7 @@ if __name__ == '__main__':
 
     logger.info("Loading grid...")
 
-    gridFile = os.path.join(configuration.get('Internal', 'packagePath'), 'grid.fits')
+    gridFile = get_data_file_path('grid.fits')
 
     try:
         data = pyfits.getdata(gridFile, 1)

@@ -10,5 +10,10 @@ setup(
     author='giacomov',
     author_email='giacomov@stanford.edu',
     description='',
-    scripts=glob.glob('scripts/*.py')
+    scripts=glob.glob('scripts/*.py'),
+
+    package_data={
+              'fermi_blind_search': ['data/grid.fits', 'data/logging.yaml'],
+           },
+    include_package_data=True,
 )
