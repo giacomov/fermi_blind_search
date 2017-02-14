@@ -1,5 +1,7 @@
 from distutils.core import setup
 
+import glob
+
 setup(
     name='fermi_blind_search',
     version='1.0',
@@ -8,5 +10,5 @@ setup(
     author='giacomov',
     author_email='giacomov@stanford.edu',
     description='',
-    scripts=['scripts/ltfsearch.py']
+    scripts=glob.glob('scripts/*.py')
 )
