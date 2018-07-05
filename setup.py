@@ -21,4 +21,11 @@ setup(
               'fermi_blind_search': data_files,
            },
     include_package_data=True,
+    install_requires=[
+            'numpy >= 1.6',
+            'scipy >=0.18',
+            'astropy>=1.3.3',
+            'matplotlib',
+            'numexpr'
+        ]
 )
