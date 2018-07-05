@@ -6,13 +6,7 @@ import subprocess
 from fermi_blind_search.Configuration import configuration
 from scripts.ltfsearch import computeSpread
 
-try:
-    
-    from astropy.io import fits as pyfits
-
-except:
-
-    import pyfits
+from fermi_blind_search.fits_interface import pyfits
 
 class ReferenceROIsMaker(object):
     

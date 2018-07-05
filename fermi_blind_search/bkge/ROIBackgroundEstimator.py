@@ -7,13 +7,7 @@ import os
 import re
 import scipy.interpolate
 
-try:
-
-    import astropy.io.fits as pyfits
-
-except:
-
-    import pyfits
+from fermi_blind_search.fits_interface import pyfits
 
 import matplotlib.pyplot as plt
 

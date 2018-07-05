@@ -1,7 +1,8 @@
 # LAT Transient Factory
 
 import matplotlib
-import pyfits
+
+from fermi_blind_search.fits_interface import pyfits
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
