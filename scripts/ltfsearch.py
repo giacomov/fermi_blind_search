@@ -53,7 +53,8 @@ if __name__ == '__main__':
     import numpy
     import yaml
     import sys
-    import pyfits
+
+    from fermi_blind_search.fits_interface import pyfits
     from fermi_blind_search import ltf
 
     if (args.workdir != '.'):
