@@ -26,6 +26,7 @@ setup(
             'scipy >=0.18',
             'astropy>=1.3.3',
             'matplotlib',
-            'numexpr'
+            'numexpr',
+            'pyyaml'
         ]
 )
