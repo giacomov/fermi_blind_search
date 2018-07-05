@@ -58,12 +58,9 @@ if __name__ == "__main__":
     if args.date:
 
         # bayesian blocks
-
-        cmd_line = 'ltfsearch.py --date %s --duration %s --loglevel %s --logfile %s ' \
-                   '--workdir %s --outfile %s' % (args.date, args.duration, args.loglevel,
-                                                  args.logfile, args.workdir, temp_file)
-
-        execute_command(cmd_line)
+        date = args.date
+        duration = args.duration
+        extra_args = []
 
     # else using simulated data
     else:
@@ -77,16 +74,24 @@ if __name__ == "__main__":
             sim_start = ft1[0].header['TSTART']
             sim_end = ft1[0].header['TSTOP']
 
-        dur = sim_end - sim_start
-
+        duration = sim_end - sim_start
+        date = sim_start
+        extra_args = ['--ft1', ft1_name, '--ft2', ft2_name]
         # bayesian blocks
 
-        cmd_line = 'ltfsearch.py --date %s --duration %s --irfs %s --probability %s --loglevel %s --logfile %s ' \
-                   '--workdir %s --outfile %s --ft1 %s --ft2 %s' % (sim_start, dur, args.irf, args.probability,
-                                                                    args.loglevel, args.logfile, args.workdir,
-                                                                    temp_file, ft1_name, ft2_name)
+        #cmd_line = 'ltfsearch.py --date %s --duration %s --irfs %s --probability %s --loglevel %s --logfile %s ' \
+        #           '--workdir %s --outfile %s --ft1 %s --ft2 %s' % (sim_start, dur, args.irf, args.probability,
+        #                                                            args.loglevel, args.logfile, args.workdir,
+        #                                                            temp_file, ft1_name, ft2_name)
 
-        execute_command(cmd_line)
+        #execute_command(cmd_line)
+
+    cmd_line = 'ltfsearch.py --date %s --duration %s --loglevel %s --logfile %s ' \
+               '--workdir %s --outfile %s %s' % (date, duration, args.loglevel,
+                                                 args.logfile, args.workdir, temp_file,
+                                                 " ".join(extra_args))
+
+    execute_command(cmd_line)
 
     # remove redundant triggers
 
