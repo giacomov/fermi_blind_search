@@ -2,7 +2,7 @@
 
 import matplotlib
 
-from fermi_blind_search.fits_interface import pyfits
+from fermi_blind_search.fits_handling.fits_interface import pyfits
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -31,6 +31,9 @@ from fermi_blind_search.Configuration import configuration
 from fermi_blind_search.ltfException import ltfException
 from fermi_blind_search.SkyDir import SkyDir
 from fermi_blind_search.bkge import ROIBackgroundEstimator
+from fermi_blind_search.fits_handling.fits import FitsFile, make_GTI_from_FT2, update_GTIs
+from fermi_blind_search.fits_handling.fits_interface import pyfits
+
 
 try:
     import sklearn.cluster
@@ -108,6 +111,9 @@ def setup_process():
     print("\nPFILES env. variable is now:")
     print(os.environ['PFILES'])
 
+    # Setup configuration directory for gtburst
+    os.environ['GTBURSTCONFDIR'] = os.getcwd()
+
 
 def figureToString(figure):
     imgdata = StringIO.StringIO()
@@ -130,31 +136,45 @@ class AllSkySearch(object):
         self.mute = bool(mute)
 
     def go(self, prepare_figures=True):
+
         thisLogger = myLogging.log.getLogger("AllSkySearch.go")
 
         intervals = [self.timeInterval] * self.npoints
         anDefs = [self.analysisDefinition] * self.npoints
         rads = [self.rad] * self.npoints
         probs = [self.nullHypProb] * self.npoints
-        pool = multiprocessing.Pool(self.cpus, setup_process)
+
         start = time.time()
 
         results = []
 
-        for i, res in enumerate(pool.imap(worker, zip(self.ras, self.decs, rads, anDefs, intervals, probs))):
+        if self.cpus > 1:
 
-            if ((i + 1) % 100) == 0:
-                thisLogger.info("%s out of %s completed" % (i + 1, self.npoints))
+            pool = multiprocessing.Pool(self.cpus, setup_process)
 
-            results.append(res)
+            for i, res in enumerate(pool.imap(worker, zip(self.ras, self.decs, rads, anDefs, intervals, probs))):
+
+                if ((i + 1) % 100) == 0:
+                    thisLogger.info("%s out of %s completed" % (i + 1, self.npoints))
+
+                results.append(res)
+
+            pool.close()
+            pool.join()
+
+        else:
+
+            for i, res in enumerate(map(worker, zip(self.ras, self.decs, rads, anDefs, intervals, probs))):
+
+                if ((i + 1) % 100) == 0:
+                    thisLogger.info("%s out of %s completed" % (i + 1, self.npoints))
+
+                results.append(res)
 
         thisLogger.info("completed search in %s regions" % self.npoints)
 
         stop = time.time()
         thisLogger.info("Elapsed time: %s" % (stop - start))
-
-        pool.close()
-        pool.join()
 
         interestingIntervals = []
         self.excludedBecauseOfDuration = 0
@@ -477,16 +497,29 @@ def createIfNotExists(path):
 
 
 def copyPfiles(path):
+
     pfiles = ['gtselect.par', 'gtmktime.par', 'gtobssim.par',
-              'fcopy.par', 'ftcopy.par', 'fdelhdu.par', 'fappend.par']
+              'fdelhdu.par', 'fappend.par']
 
     for pfile in pfiles:
 
-        thisPil = pil.Pil(pfile)
-        newName = os.path.join(os.path.abspath(path), pfile)
-        thisPil.write(newName)
+        try:
 
-    pass
+            thisPil = pil.Pil(pfile)
+            newName = os.path.join(os.path.abspath(path), pfile)
+            thisPil.write(newName)
+
+        except:
+
+            if pfile.find("gt")==0:
+
+                # A Fermi pfile, raise an error
+                raise
+
+            else:
+
+                # A heasoft pfile, issue a warning (they are only needed for simulations)
+                warnings.warn("Could not find pfile %s. You might encounter problems ")
 
 
 # A class featuring a select method
@@ -497,8 +530,8 @@ class Selector(object):
         self.rad = float(rad)
         self.analysisDef = analysisDef
         self.timeInterval = timeInterval
-        self.uid = getID()
-        self.workdir = os.path.join(os.path.abspath(os.getcwd()), self.uid)
+        self.uid = "%s" % getID()
+        self.workdir = os.path.join(os.path.abspath(os.getcwd()), "_%s" % self.uid)
 
         # Create unique workdir. All commands with the @in_workdir decorator
         # will run in that workdir
@@ -520,59 +553,95 @@ class Selector(object):
     def __del__(self):
         # Remove workdirectory, if the user didn't call the done()
         # method
-        if (not self.cleaned):
+        try:
+
             print("Cleaning up %s in destructor..." % (self.workdir))
             shutil.rmtree(self.workdir, ignore_errors=True)
 
+        except:
+
+            pass
+
     @in_workdir
     def _select(self, tstart, tstop):
-        # Run fselect before to speed up gtselect
 
-        cmdLine = '''fcopy "%s[EVENTS][circle(%.3f,%.3f,%s,RA,DEC)]" !__preFilt.fit ''' % (self.timeInterval.ft1,
-                                                                                           self.ra, self.dec,
-                                                                                           self.rad * 2.0)
-        print("\n%s\n" % cmdLine)
+        # Make GTI file first
+        filter_expression = '(DATA_QUAL>0 || DATA_QUAL==-1) && LAT_CONFIG==1 && IN_SAA!=T && LIVETIME>0 && ' \
+                            '(ANGSEP(RA_ZENITH,DEC_ZENITH,%(ra)s,%(dec)s)<=(%(zmax)s-%(rad)s)) ' \
+                            '&& (ANGSEP(RA_SCZ,DEC_SCZ,' \
+                            '%(ra)s,%(dec)s)<=(%(thetamax)s-%(rad)s))' % {'ra': self.ra,
+                                                                          'dec': self.dec,
+                                                                          'zmax': self.analysisDef.zmax,
+                                                                          'rad': self.rad,
+                                                                          'thetamax': self.analysisDef.thetamax}
 
-        subprocess.check_output(cmdLine, shell=True)
+        gti_file = "__GTI.fit"
 
-        latData = dataHandling.LATData('__preFilt.fit',
-                                       '__preFilt.fit',
-                                       self.timeInterval.ft2,
-                                       self.uid)
-        try:
-            thisEventFile, nEvents = latData.performStandardCut(self.ra,
-                                                                self.dec,
-                                                                self.rad,
-                                                                self.analysisDef.irf,
-                                                                tstart,
-                                                                tstop,
-                                                                self.analysisDef.emin,
-                                                                self.analysisDef.emax,
-                                                                self.analysisDef.zmax,
-                                                                self.analysisDef.thetamax,
-                                                                gtmktime=True)
+        gti_starts, gti_stops = make_GTI_from_FT2(self.timeInterval.ft2, filter_expression, gti_file, overwrite=True,
+                                                  force_start=tstart, force_stop=tstop)
 
-        except GtBurstException as gtburstError:
-            if (gtburstError.code in [14, 2, 21, 22, 23]):
-                # gtmktime or gtselect returned 0 events or 0 rows,
-                # i.e., this is an empty ROI
-                return None, 0
-            else:
-                print("\n\nGTSELECT FAILED\n\n")
-                return None, 0
-        pass
+        gti_filter = "gtifilter('%s')" % gti_file
+        energy_filter = "(ENERGY >= %s) && (ENERGY <= %s)" % (self.analysisDef.emin, self.analysisDef.emax)
+        flt = '(%s) && (%s)' % (energy_filter, gti_filter)
 
-        # Get the total elapsed time (i.e., the sum of all GTIs)
-        gti = pyfits.getdata(thisEventFile, 'GTI')
-        self.onsource = numpy.sum(gti.STOP - gti.START)
+        # Apply filter
+        thisEventFile = 'filt_ft1_%s.fit' % self.uid
+
+        fits = FitsFile(self.timeInterval.ft1,
+                        'EVENTS',
+                        flt,
+                        cone=(self.ra, self.dec, self.rad))
+
+        nEvents = len(fits['EVENTS'].data)
+
+        fits.write_to(thisEventFile, overwrite=True)
+
+        update_GTIs(thisEventFile, gti_starts, gti_stops)
+
+        # latData = dataHandling.LATData(self.timeInterval.ft1,
+        #                                self.timeInterval.ft1,
+        #                                self.timeInterval.ft2,
+        #                                self.uid)
+        #
+        # try:
+        #     thisEventFile2, nEvents2 = latData.performStandardCut(self.ra,
+        #                                                         self.dec,
+        #                                                         self.rad,
+        #                                                         self.analysisDef.irf,
+        #                                                         tstart,
+        #                                                         tstop,
+        #                                                         self.analysisDef.emin,
+        #                                                         self.analysisDef.emax,
+        #                                                         self.analysisDef.zmax,
+        #                                                         self.analysisDef.thetamax,
+        #                                                         gtmktime=True)
+        #
+        # except GtBurstException as gtburstError:
+        #
+        #     if (gtburstError.code in [14, 2, 21, 22, 23]):
+        #         # gtmktime or gtselect returned 0 events or 0 rows,
+        #         # i.e., this is an empty ROI
+        #         return None, 0
+        #     else:
+        #         print("\n\nGTSELECT FAILED\n\n")
+        #         return None, 0
+        # pass
+        #
+        # assert nEvents == nEvents2
+
+        # Open the file just produced, fix it and get some info
+        with pyfits.open(thisEventFile, mode='update') as f:
+
+            # Get the total elapsed time (i.e., the sum of all GTIs)
+            gti = f['GTI'].data
+            self.onsource = numpy.sum(gti.STOP - gti.START)
+
+            # Add a DS keyword describing the ROI (we will use it later)
+            f['EVENTS'].header['DSTYP9'] = 'POS(RA,DEC)'
+            f['EVENTS'].header['DSUNI9'] = 'deg'
+            f['EVENTS'].header['DSVAL9'] = 'circle(%s,%s,%s)' % (self.ra, self.dec, self.rad)
 
         return thisEventFile, nEvents
-
-    pass
-
-
-pass
-
 
 class Excess(Selector):
     def setNpred(self, npred):
@@ -679,15 +748,14 @@ class SearchRegion(Selector):
 
     @in_workdir
     def _applySelectionToSim(self):
-        # Run fselect before to speed up gtselect
 
-        cmdLine = '''fcopy "%s[EVENTS][circle(%.3f,%.3f,%s,RA,DEC)]" !__preFilt.fit ''' % (self.timeInterval.simft1,
-                                                                                           self.ra, self.dec,
-                                                                                           self.rad * 2)
+        # Pre-select so that gtselect is faster
+        region_filter = "circle(%.3f,%.3f,%s,RA,DEC)" % (self.ra, self.dec, self.rad)
 
-        print("\n%s\n" % cmdLine)
-
-        subprocess.check_output(cmdLine, shell=True)
+        # Make this in one line so the instance is not kept in memory
+        FitsFile(self.timeInterval.ft1,
+                 'EVENTS',
+                 '(%s)' % region_filter).write_to("__preFilt.fit", overwrite=True)
 
         gtselect = GtApp.GtApp('gtselect')
         gtselect['infile'] = '__preFilt.fit'
@@ -729,9 +797,12 @@ class SearchRegion(Selector):
         self.selectedEventFileSim = "sim_%s" % (self.selectedEventFile)
 
         # Apply the GTI
-        cmdLine = '''fcopy "__sel.fits[EVENTS][gtifilter('__sel.fits[GTI]')]" !%s''' % (self.selectedEventFileSim)
-        print("\n%s\n" % cmdLine)
-        subprocess.check_output(cmdLine, shell=True)
+        gti_filter = "gtifilter('__sel.fits[GTI]')"
+
+        # Make this in one line so the instance is not kept in memory
+        FitsFile(self.timeInterval.ft1,
+                 'EVENTS',
+                 '%s' % gti_filter).write_to(self.selectedEventFileSim, overwrite=True)
 
         gti = pyfits.getdata(self.selectedEventFileSim, 'GTI')
         print("Exposure is %s" % (numpy.sum(gti.STOP - gti.START)))
@@ -804,9 +875,13 @@ class SearchRegion(Selector):
 
         self._createNpredIntegralDistribution()
 
-        data = pyfits.getdata(self.selectedEventFile)
+        import fitsio
 
-        t = data.field("TIME")
+        #data = pyfits.getdata(self.selectedEventFile)
+
+        #t = data.field("TIME")
+
+        t = fitsio.read(self.selectedEventFile, columns=['TIME'], ext='EVENTS')['TIME']
 
         t.sort()
 

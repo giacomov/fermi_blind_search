@@ -7,12 +7,11 @@ import os
 import re
 import scipy.interpolate
 
-from fermi_blind_search.fits_interface import pyfits
+from fermi_blind_search.fits_handling.fits_interface import pyfits
 
 import matplotlib.pyplot as plt
 
 from fermi_blind_search.bkge.angular_distance import getAngularDistance
-from fermi_blind_search.Configuration import configuration
 from fermi_blind_search.data_files import get_data_file_path
 
 
@@ -702,19 +701,25 @@ class ROIBackgroundEstimator(object):
 
             this_times = numpy.linspace(gti_t1, padded_gti_t2, nbins)
 
-            this_lc = numpy.zeros_like(this_times)
+            #this_lc = numpy.zeros_like(this_times)
 
-            for i, t in enumerate(this_times):
+            theta = self.dataThetaInterpolator(this_times)
 
-                theta = self.dataThetaInterpolator(t)
+            assert numpy.alltrue(theta <= 80), "You have to cut your data with gtmktime and a theta cut of 65 at most!"
 
-                if theta > 80:
+            this_lc = self.rateInterpolator(theta) * self.dataLivetimeFractionInterpolator(this_times)
 
-                    raise RuntimeError("You have to cut your data with gtmktime and a theta cut of 65 at most!")
-
-                else:
-
-                    this_lc[i] = self.rateInterpolator(theta) * self.dataLivetimeFractionInterpolator(t)
+            # for i, t in enumerate(this_times):
+            #
+            #     theta = self.dataThetaInterpolator(t)
+            #
+            #     if theta > 80:
+            #
+            #         raise RuntimeError("You have to cut your data with gtmktime and a theta cut of 65 at most!")
+            #
+            #     else:
+            #
+            #         this_lc[i] = self.rateInterpolator(theta) * self.dataLivetimeFractionInterpolator(t)
 
             # Add a zero before the first bin of this GTI, so
             # between GTIs the interpolation will be zero

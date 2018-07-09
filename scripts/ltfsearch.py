@@ -4,6 +4,8 @@ import datetime
 import time
 
 from fermi_blind_search.data_files import get_data_file_path
+from GtBurst import IRFS
+import GtApp
 
 
 def computeSpread(points):
@@ -54,7 +56,7 @@ if __name__ == '__main__':
     import yaml
     import sys
 
-    from fermi_blind_search.fits_interface import pyfits
+    from fermi_blind_search.fits_handling.fits_interface import pyfits
     from fermi_blind_search import ltf
 
     if (args.workdir != '.'):
@@ -154,6 +156,26 @@ if __name__ == '__main__':
 
     gtburstIrf = "_".join(irf.split("_")[:-1]).replace("P8R2", "P8")
 
+    # Make a gtselect selecting the requested IRF
+    cleaned_ft1 = "__cleaned_ft1.fits"
+
+    gtselect_args = {'infile': ft1file,
+                     'outfile': cleaned_ft1,
+                     'ra': 0.0,
+                     'dec': 0.0,
+                     'rad': 180.0,
+                     'tmin': 0.0,
+                     'tmax': 0.0,
+                     'emin': 0.0,
+                     'emax': 0.0,
+                     'zmin': 0.0,
+                     'zmax': 180.0,
+                     'evclass': IRFS.IRFS[gtburstIrf].evclass,
+                     'evtype': 'INDEF',
+                     'clobber': 'yes'}
+    logger.info("Preselecing events belonging to IRF %s..." % gtburstIrf)
+    GtApp.GtApp('gtselect').run(**gtselect_args)
+
     # Get number of cpus to use
 
     ncpus = int(configuration.get("Hardware", "ncpus"))
@@ -176,7 +198,7 @@ if __name__ == '__main__':
 
     spread, medianDistance = computeSpread(numpy.vstack([ras, decs]).T)
 
-    # idx = (numpy.abs(ras - 119.8) < 10) & (numpy.abs(decs+56.6) < 10)
+    # idx = (numpy.abs(ras - 119.8) < 15) & (numpy.abs(decs+56.6) < 15)
     # ras = ras[idx]
     # decs = decs[idx]
     # ras = numpy.array([275.072875977])
@@ -193,7 +215,7 @@ if __name__ == '__main__':
 
     timeInterval = ltf.TimeInterval(met_start,
                                     met_start + args.duration,
-                                    ft1file,
+                                    cleaned_ft1,
                                     ft2file,
                                     simft1=None)
 

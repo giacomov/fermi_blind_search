@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
         #execute_command(cmd_line)
 
-    cmd_line = 'ltfsearch.py --date %s --duration %s --loglevel %s --logfile %s ' \
+    cmd_line = 'python -m cProfile -o search.prof  `which ltfsearch.py` --date %s --duration %s --loglevel %s --logfile %s ' \
                '--workdir %s --outfile %s %s' % (date, duration, args.loglevel,
                                                  args.logfile, args.workdir, temp_file,
                                                  " ".join(extra_args))

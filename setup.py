@@ -10,8 +10,12 @@ data_files.extend(glob.glob('fermi_blind_search/data/ROIBackgroundEstimator_data
 setup(
     name='fermi_blind_search',
     version='1.0',
-    packages=['scripts', 'fermi_blind_search', 'fermi_blind_search.bkge', 'fermi_blind_search.batch',
-              'fermi_blind_search.grid_creation'],
+    packages=['scripts',
+              'fermi_blind_search',
+              'fermi_blind_search.bkge',
+              'fermi_blind_search.batch',
+              'fermi_blind_search.grid_creation',
+              'fermi_blind_search.fits_handling'],
     author='giacomov',
     author_email='giacomov@stanford.edu',
     description='',
@@ -27,6 +31,7 @@ setup(
             'astropy>=1.3.3',
             'matplotlib',
             'numexpr',
-            'pyyaml'
+            'pyyaml',
+            'fitsio'
         ]
 )

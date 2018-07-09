@@ -151,6 +151,7 @@ def bayesian_blocks_not_unique(tt, ttstart, ttstop, p0):
 
     return np.asarray(finalEdges)
 
+
 def bayesian_blocks(tt, ttstart, ttstop, p0, bkgIntegralDistr=None, myLikelihood=None):
     """Divide a series of events characterized by their arrival time in blocks
     of perceptibly constant count rate. If the background integral distribution
