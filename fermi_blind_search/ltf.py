@@ -293,7 +293,7 @@ class AllSkySearch(object):
             # Now create a name according to the IAU Specifications for Nomenclature
             name = get_IAU_name(this_ra, this_dec)
 
-            this_row = [name.replace(" ","_"),
+            this_row = [name.replace(" ", ""),
                         str(this_ra),
                         str(this_dec),
                         ",".join(tstarts),
