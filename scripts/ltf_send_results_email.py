@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import argparse
 import smtplib
-from email.mime.text import MIMEText
+# from email.mime.text import MIMEText
 import os
+import numpy as np
+
 
 def valid_configuration(s):
 
@@ -10,39 +12,43 @@ def valid_configuration(s):
     os.environ['LTF_CONFIG_FILE'] = s
 
     # Get configuration
-    from fermi_blind_search.Configuration import configuration
+    from fermi_blind_search.configuration import configuration
 
     return configuration
 
+
 def read_results(filename):
 
-    f = open(filename)
+    data = np.recfromtxt(filename, delimiter=' ', names=True, encoding=None)
 
-    #each detected transient is written on a new line
-    results_list = f.read().split('\n')
+    return data
 
-    f.close()
+    # with open(filename) as f:
+    #
+    #     #each detected transient is written on a new line
+    #     results_list = f.read().split('\n')
+    #
+    # #store the return values here
+    # events = []
+    #
+    # #the first line of the file is the header, so we ignore this by starting at index 1
+    # for i in range(1,len(results_list)):
+    #
+    #     #splits on all whitespace
+    #     e = results_list[i].split()
+    #
+    #     #there may be a newline at the end of the file, we want to ignore it
+    #     if len(e) > 0:
+    #
+    #         #we convert start_times stop_time, counts, and probs to float values because they will be used
+    #         #for comparisons when determining which blocks to include in the email
+    #         events.append({'name': e[0], 'ra': e[1], 'dec': e[2],
+    #                         'start_times': [float(i) for i in e[3].split(',')],
+    #                         'stop_times': [float(i) for i in e[4].split(',')],
+    #                         'counts': [float(i) for i in e[5].split(',')],
+    #                         'probs': [float(i) for i in e[6].split(',')]})
+    # return events
 
-    #store the return values here
-    events = []
-
-    #the first line of the file is the header, so we ignore this by starting at index 1
-    for i in range(1,len(results_list)):
-
-        #splits on all whitespace
-        e = results_list[i].split()
-
-        #there may be a newline at the end of the file, we want to ignore it
-        if len(e) > 0:
-
-            #we convert start_times stop_time, counts, and probs to float values because they will be used
-            #for comparisons when determining which blocks to include in the email
-            events.append({'name': e[0], 'ra': e[1], 'dec': e[2],
-                            'start_times': [float(i) for i in e[3].split(',')],
-                            'stop_times': [float(i) for i in e[4].split(',')],
-                            'counts': [float(i) for i in e[5].split(',')],
-                            'probs': [float(i) for i in e[6].split(',')]})
-    return events
 
 def get_blocks(event_dict):
 
@@ -57,6 +63,8 @@ def get_blocks(event_dict):
     #store the return values here
     blocks_to_email = []
 
+    assert num_blocks > 1, "There is zero or one blocks in the input file. This should never happen."
+
     if num_blocks <= 3:
 
         #there are 2 or 3 blocks and we want to email the one with lowest probability
@@ -64,12 +72,12 @@ def get_blocks(event_dict):
         blocks_to_email.append({'start_time': event_dict['start_times'][lowest_prob_idx],
                                 'stop_time': event_dict['stop_times'][lowest_prob_idx]})
 
-    if num_blocks == 4:
+    elif num_blocks == 4:
 
         #there are 4 blocks, we want to return the two with lowest probaility, returning them as
         #one block if they are continuous
         lowest_prob_idx = sorted_list_idx[0]
-        second_prob_idx = sorted_list[1]
+        second_prob_idx = sorted_list_idx[1]
 
         if abs(lowest_prob_idx - second_prob_idx) == 1:
 
@@ -113,6 +121,7 @@ def get_blocks(event_dict):
                                         'stop_time': event_dict['stop_times'][sorted_min_three[i]]})
     return blocks_to_email
 
+
 def format_email(block_dict, ra, dec):
 
     #using the start and stop times, ra, and dec of the blocks we need to email, format
@@ -131,6 +140,7 @@ def write_to_file(email_string, name):
     f = open(name, 'w+')
     f.write(email_string)
     f.close()
+
 
 if __name__ == "__main__":
 
@@ -161,36 +171,50 @@ if __name__ == "__main__":
 
     if args.email:
 
-        from fermi_blind_search.Configuration import configuration
+        from fermi_blind_search.configuration import configuration
 
-        #open the smtp email server and login
-        s = smtplib.SMTP(host=configuration.get("Results email", "host"), port=int(configuration.get("Results email", "port")))
-        s.starttls()
-        s.login(configuration.get("Results email", "username"), configuration.get("Results email", "pword"))
+        server = smtplib.SMTP(configuration.get("Results email", "host"),
+                              port=int(configuration.get("Results email", "port")))
 
-        for i in range(len(events)):
+        try:
 
-            #for each detected transient, we want to send an email for each block
+            #open the smtp email server and login
+            # s = smtplib.SMTP(host=configuration.get("Results email", "host"), port=int(configuration.get("Results email", "port")))
+            # s.starttls()
+            # s.login(configuration.get("Results email", "username"), configuration.get("Results email", "pword"))
 
-            #the ra and dec do not change for each block
-            ra = events[i]['ra']
-            dec = events[i]['dec']
+            for i in range(len(events)):
 
-            for j in range(len(blocks_to_email[i])):
+                #for each detected transient, we want to send an email for each block
 
-                #format the body of the email
-                email_body = format_email(blocks_to_email[i][j], ra, dec)
+                #the ra and dec do not change for each block
+                ra = events[i]['ra']
+                dec = events[i]['dec']
 
-                #send the email
-                msg = MIMEText(email_body)
-                msg['From'] = configuration.get("Results email", "username")
-                msg['To'] = configuration.get("Results email", "recipient")
-                msg['Subject'] = configuration.get("Results email", "subject")
-                s.sendmail(configuration.get("Results email", "username"), [configuration.get("Results email", "recipient")], msg.as_string())
-                del msg
+                for j in range(len(blocks_to_email[i])):
 
-        #terminate the email server session
-        s.quit()
+                    #format the body of the email
+                    email_body = format_email(blocks_to_email[i][j], ra, dec)
+
+                    server.sendmail(configuration.get("Results email", "username"),
+                                    configuration.get("Results email", "recipient"),
+                                    email_body)
+
+                    #send the email
+                    # msg = MIMEText(email_body)
+                    # msg['From'] = configuration.get("Results email", "username")
+                    # msg['To'] = configuration.get("Results email", "recipient")
+                    # msg['Subject'] = configuration.get("Results email", "subject")
+                    # s.sendmail(configuration.get("Results email", "username"), [configuration.get("Results email", "recipient")], msg.as_string())
+                    # del msg
+        except:
+
+            raise
+
+        finally:
+
+            #terminate the email server session
+            server.quit()
 
     else:
 
