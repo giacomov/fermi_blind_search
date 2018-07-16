@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    from fermi_blind_search.Configuration import configuration
+    from fermi_blind_search.configuration import configuration
     import os
     import dateutil
     from fermi_blind_search import myLogging, ltf

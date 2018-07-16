@@ -40,7 +40,7 @@ def valid_configuration(s):
     os.environ['LTF_CONFIG_FILE'] = s
 
     # Get configuration
-    from fermi_blind_search.Configuration import configuration
+    from fermi_blind_search.configuration import configuration
 
     return configuration
 
