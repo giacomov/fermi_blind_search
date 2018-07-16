@@ -3,7 +3,7 @@ import numpy
 import os
 import subprocess
 
-from fermi_blind_search.Configuration import configuration
+from fermi_blind_search.configuration import configuration
 from scripts.ltfsearch import computeSpread
 
 from fermi_blind_search.fits_handling.fits_interface import pyfits
