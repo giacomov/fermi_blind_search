@@ -4,18 +4,6 @@ import smtplib
 from email.mime.text import MIMEText
 import os
 
-#TODO:
-#1. updates what blocks you send in what cases
-#2. set up config file (fermi_blind_search/fermi_blind_search/Configuration.py and
-# fermi_blind_search/scripts/ltf_create_config_file.py)
-#3. Test
-
-#Config file stuff
-#need to implement valid_configuration like in ltf_submit_day_jobs
-#need to set the environ var to the config file
-#need to then access the config file like in ltfsearch.py line 152
-
-
 def valid_configuration(s):
 
     # Set environment
@@ -28,41 +16,67 @@ def valid_configuration(s):
 
 def read_results(filename):
     f = open(filename)
+
+    #each detected transient is written on a new line
     results_list = f.read().split('\n')
+
+    #store the return values here
     events = []
+
     #the first line of the file is the header, so we ignore this by starting at index 1
     for i in range(1,len(results_list)):
-        e = results_list[i].split() #splits on all whitespace
-        if len(e) > 0: #ensures the line is not blank
-            print(e)
+
+        #splits on all whitespace
+        e = results_list[i].split()
+
+        #there may be a newline at the end of the file, we want to ignore it
+        if len(e) > 0:
+
             #we convert start_times stop_time, counts, and probs to float values because they will be used
             #for comparisons when determining which blocks to include in the email
             events.append({'name': e[0], 'ra': e[1], 'dec': e[2],
-                            'start_times': [float(i) for i in e[3].split(',')], 'stop_times': [float(i) for i in e[4].split(',')],
-                            'counts': [float(i) for i in e[5].split(',')], 'probs': [float(i) for i in e[6].split(',')]})
+                            'start_times': [float(i) for i in e[3].split(',')],
+                            'stop_times': [float(i) for i in e[4].split(',')],
+                            'counts': [float(i) for i in e[5].split(',')],
+                            'probs': [float(i) for i in e[6].split(',')]})
     return events
 
 def get_blocks(event_dict):
-    sorted_list_idx = sorted(range(len(event_dict['probs'])), key=(lambda index: event_dict['probs'][index]))
+
+    #we want to find the indices of the X blocks with lowest probaility, so we do an
+    #argmin-like operation
+    sorted_list_idx = sorted(range(len(event_dict['probs'])),
+                            key=(lambda index: event_dict['probs'][index]))
+
+    #number of blocks the Bayseian Blocks algorithm detected
     num_blocks = len(event_dict['start_times'])
+
+    #store the return values here
     blocks_to_email = []
+
     if num_blocks <= 3:
         #there are 2 or 3 blocks and we want to email the one with lowest probability
         lowest_prob_idx = sorted_list_idx[0]
-        blocks_to_email.append({'start_time': event_dict['start_times'][lowest_prob_idx], 'stop_time': event_dict['stop_times'][lowest_prob_idx]})
+        blocks_to_email.append({'start_time': event_dict['start_times'][lowest_prob_idx],
+                                'stop_time': event_dict['stop_times'][lowest_prob_idx]})
+
     if num_blocks == 4:
         #there are 4 blocks, we want to return the two with lowest probaility, returning them as
         #one block if they are continuous
         lowest_prob_idx = sorted_list_idx[0]
         second_prob_idx = sorted_list[1]
         if abs(lowest_prob_idx - second_prob_idx) == 1:
-            #the blocks are continuous, return as one block
-            start_time = min(event_dict['start_times'][lowest_prob_idx], event_dict['start_times'][second_prob_idx])
-            stop_time = max(event_dict['stop_times'][lowest_prob_idx], event_dict['stop_times'][lowest_prob_idx])
+            #the blocks are continuous, return as one block that contains the two smaller blocks
+            start_time = min(event_dict['start_times'][lowest_prob_idx],
+                            event_dict['start_times'][second_prob_idx])
+            stop_time = max(event_dict['stop_times'][lowest_prob_idx],
+                            event_dict['stop_times'][lowest_prob_idx])
             blocks_to_email.append({'start_time': start_time, 'stop_time': stop_time})
         else:
-            blocks_to_email.append({'start_time': event_dict['start_times'][lowest_prob_idx], 'stop_time': event_dict['stop_times'][lowest_prob_idx]})
-            blocks_to_email.append({'start_time': event_dict['start_times'][second_prob_idx], 'stop_time': event_dict['stop_times'][second_prob_idx]})
+            blocks_to_email.append({'start_time': event_dict['start_times'][lowest_prob_idx],
+                                    'stop_time': event_dict['stop_times'][lowest_prob_idx]})
+            blocks_to_email.append({'start_time': event_dict['start_times'][second_prob_idx],
+                                    'stop_time': event_dict['stop_times'][second_prob_idx]})
     else:
         #there are more than 4 blocks, we want to return the three with lowest probability, returning
         #continuous blocks as one block
@@ -80,13 +94,7 @@ def get_blocks(event_dict):
     return blocks_to_email
 
 def format_email(block_dict, ra, dec):
-    # TITLE:          GCN/GBM NOTICE
-    # NOTICE_TYPE:    User-supplied job
-    # GRB_RA:          165.636276245d
-    # GRB_DEC:        5.24142026901d
-    # GRB_MET:        246556379.9
-    # ANALYSIS_INTERVAL: 30000
-    # COMMENTS:       This is a user-supplied job. LTF-blind
+
 
     interval = block_dict['stop_time'] - block_dict['start_time']
 
@@ -113,14 +121,9 @@ if __name__ == "__main__":
     for i in range(len(events)):
         blocks_to_email.append(get_blocks(events[i]))
     if args.email:
+        
         from fermi_blind_search.Configuration import configuration
 
-        print(configuration.get("Results email", "host"))
-        print(int(configuration.get("Results email", "port")))
-        print(configuration.get("Results email", "username"))
-        print(configuration.get("Results email", "pword"))
-        print(configuration.get("Results email", "recipient"))
-        print(configuration.get("Results email", "subject"))
         s = smtplib.SMTP(host=configuration.get("Results email", "host"), port=int(configuration.get("Results email", "port")))
         s.starttls()
         s.login(configuration.get("Results email", "username"), configuration.get("Results email", "pword"))
