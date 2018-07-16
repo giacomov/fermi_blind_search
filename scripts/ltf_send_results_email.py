@@ -113,10 +113,11 @@ def get_blocks(event_dict):
                                         'stop_time': event_dict['stop_times'][sorted_min_three[i]]})
     return blocks_to_email
 
+
 def format_email(block_dict, ra, dec):
 
-    #using the start and stop times, ra, and dec of the blocks we need to email, format
-    #the body of the email
+    # using the start and stop times, ra, and dec of the blocks we need to email, format
+    # the body of the email
 
     interval = block_dict['stop_time'] - block_dict['start_time']
 
@@ -132,6 +133,7 @@ def write_to_file(email_string, name):
     f.write(email_string)
     f.close()
 
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="""Format and send an email from a
@@ -144,61 +146,33 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    #read each detected transient into a dictionary and store them as a list
+    # read each detected transient into a dictionary and store them as a list
     events = read_results(args.results)
 
-    #now events is of the form events[i] = dictionary of information about the transient
-    #on line i of the results file
+    # now events is of the form events[i] = dictionary of information about the transient
+    # on line i of the results file
 
     blocks_to_email = []
     for i in range(len(events)):
-        #for each detected transient, determine the number of blocks that should be
-        #emailed and get their start and stop times
+        # for each detected transient, determine the number of blocks that should be
+        # emailed and get their start and stop times
         blocks_to_email.append(get_blocks(events[i]))
 
-    #now blocks_to_email[i] = [block_1, block_2, ...]  where block_<#> is a dictionary
-    #of the start and stop times of one of the blocks to be emailed for detected transient i
+    # now blocks_to_email[i] = [block_1, block_2, ...]  where block_<#> is a dictionary
+    # of the start and stop times of one of the blocks to be emailed for detected transient i
 
     if args.email:
 
         from fermi_blind_search.Configuration import configuration
 
-        #open the smtp email server and login
+        # open the smtp email server and login
         s = smtplib.SMTP(host=configuration.get("Results email", "host"), port=int(configuration.get("Results email", "port")))
         s.starttls()
         s.login(configuration.get("Results email", "username"), configuration.get("Results email", "pword"))
 
         for i in range(len(events)):
 
-            #for each detected transient, we want to send an email for each block
-
-            #the ra and dec do not change for each block
-            ra = events[i]['ra']
-            dec = events[i]['dec']
-
-            for j in range(len(blocks_to_email[i])):
-
-                #format the body of the email
-                email_body = format_email(blocks_to_email[i][j], ra, dec)
-
-                #send the email
-                msg = MIMEText(email_body)
-                msg['From'] = configuration.get("Results email", "username")
-                msg['To'] = configuration.get("Results email", "recipient")
-                msg['Subject'] = configuration.get("Results email", "subject")
-                s.sendmail(configuration.get("Results email", "username"), [configuration.get("Results email", "recipient")], msg.as_string())
-                del msg
-
-        #terminate the email server session
-        s.quit()
-
-    else:
-
-        #we want to write the emails to a .txt file instead of sending them
-
-        for i in range(len(events)):
-
-            #for each detected transient we want to write a file for each block
+            # for each detected transient, we want to send an email for each block
 
             # the ra and dec do not change for each block
             ra = events[i]['ra']
@@ -206,8 +180,36 @@ if __name__ == "__main__":
 
             for j in range(len(blocks_to_email[i])):
 
-                #format the body of the "email"
+                # format the body of the email
                 email_body = format_email(blocks_to_email[i][j], ra, dec)
 
-                #write the file using the filename format <name_of_transient>_block<#>
+                # send the email
+                msg = MIMEText(email_body)
+                msg['From'] = configuration.get("Results email", "username")
+                msg['To'] = configuration.get("Results email", "recipient")
+                msg['Subject'] = configuration.get("Results email", "subject")
+                s.sendmail(configuration.get("Results email", "username"), [configuration.get("Results email", "recipient")], msg.as_string())
+                del msg
+
+        # terminate the email server session
+        s.quit()
+
+    else:
+
+        # we want to write the emails to a .txt file instead of sending them
+
+        for i in range(len(events)):
+
+            # for each detected transient we want to write a file for each block
+
+            # the ra and dec do not change for each block
+            ra = events[i]['ra']
+            dec = events[i]['dec']
+
+            for j in range(len(blocks_to_email[i])):
+
+                # format the body of the "email"
+                email_body = format_email(blocks_to_email[i][j], ra, dec)
+
+                # write the file using the filename format <name_of_transient>_block<#>
                 write_to_file(email_body, events[i]['name'] + '_block' + str(j))
