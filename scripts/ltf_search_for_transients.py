@@ -9,6 +9,7 @@ import os
 from astropy.io import fits
 
 from fermi_blind_search.execute_command import execute_command
+from fermi_blind_search.configuration import get_config
 
 # execute only if run from command line
 if __name__ == "__main__":
@@ -49,7 +50,9 @@ if __name__ == "__main__":
 
     # Set the configuration file
 
-    os.environ["LTF_CONFIG_FILE"] = args.config_file
+    configuration = get_config(args.config_file)
+
+    # os.environ["LTF_CONFIG_FILE"] = args.config_file
 
     temp_file = '__%s' % os.path.basename(args.outfile)
 
