@@ -72,8 +72,7 @@ if __name__ == "__main__":
                         type=valid_date, required=True)
     parser.add_argument('--end_date', help='''End date in ISO format. Ex: "2010-12-31" "''',
                         type=valid_date, required=True)
-    parser.add_argument('--config', help="Path to configuration file",
-                        type=get_config, required=True)
+    parser.add_argument('--config', help="Path to configuration file", type=get_config, required=True)
     parser.add_argument('--outdir', help="Directory for results (must be on NFS/AFS)",
                         type=str, required=True)
     parser.add_argument('--logdir', help="Directory for logs (must be on NFS/AFS)",

@@ -23,7 +23,7 @@ if __name__ == "__main__":
     group.add_argument('--date', help='date specifying file to load')
     group.add_argument('--inp_fts', help='filenames of ft1 and ft2 input, separated by a comma (ex: foo.ft1,bar.ft2)')
 
-    parser.add_argument("--config_file", help="Name of configuration file", required=True)
+    parser.add_argument('--config', help="Path to configuration file", type=get_config, required=True)
 
     parser.add_argument("--outfile", help="Name of text file containing list of possible transients", type=str,
                         required=True)
@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     # Set the configuration file
 
-    configuration = get_config(args.config_file)
+    configuration = args.config
 
     # os.environ["LTF_CONFIG_FILE"] = args.config_file
 
@@ -89,8 +89,8 @@ if __name__ == "__main__":
 
         #execute_command(cmd_line)
 
-    cmd_line = 'ltfsearch.py --date %s --duration %s --loglevel %s --logfile %s ' \
-               '--workdir %s --outfile %s %s' % (date, duration, args.loglevel,
+    cmd_line = 'ltfsearch.py --date %s --duration %s --config %s --loglevel %s --logfile %s ' \
+               '--workdir %s --outfile %s %s' % (date, duration, args.config.config_file, args.loglevel,
                                                  args.logfile, args.workdir, temp_file,
                                                  " ".join(extra_args))
 
@@ -98,7 +98,8 @@ if __name__ == "__main__":
 
     # remove redundant triggers
 
-    cmd_line = 'ltf_remove_redundant_triggers.py --in_list %s --out_list %s' % (temp_file, args.outfile)
+    cmd_line = 'ltf_remove_redundant_triggers.py --in_list %s --out_list %s --config %s' % (temp_file, args.outfile,
+                                                                                            args.config.config_file)
 
     execute_command(cmd_line)
 

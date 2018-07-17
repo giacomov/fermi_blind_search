@@ -16,6 +16,8 @@ import argparse
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
+from fermi_blind_search.configuration import get_config
+
 
 def dist(region1, region2):
     """
@@ -205,6 +207,7 @@ if __name__ == "__main__":
     #                     type=float, required=True)
     parser.add_argument("--out_list", help="Name for the output file, which will contained the pruned list",
                         required=True, type=str)
+    parser.add_argument('--config', help="Path to configuration file", type=get_config, required=True)
 
     # parse the arguments
     args = parser.parse_args()
@@ -227,7 +230,7 @@ if __name__ == "__main__":
     from fermi_blind_search.configuration import get_config
 
     # check for multiple triggers by same event,
-    configuration = get_config()
+    configuration = args.config
     min_dist = float(configuration.get("Post processing", "cluster_distance"))
     result = check_nearest(data, min_dist)
 
