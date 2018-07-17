@@ -34,6 +34,11 @@ Min_counts = 3
 # be checked and marked as the same transient if they overlap in time
 cluster_distance = 15.0
 
+[Real time]
+# describes the type of database and the path to where it is stored. 
+# See SQLAlchemy for more information about formatting
+db_engine_url = sqlite:///test_db1.db
+
 [Hardware]
 ncpus = 10
 '''
