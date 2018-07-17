@@ -103,17 +103,9 @@ if __name__ == '__main__':
 
         # Download files
 
-        # Import this here otherwise the -h flag will be intercepted by pyROOT (!)
-        from GtBurst.dataHandling import date2met
+        from fermi_blind_search.date2met_converter import convert_date
+        met_start = convert_date(args.date)
 
-        # Check that the date is a valid date
-        try:
-            validated = dateutil.parser.parse(args.date).isoformat().replace("T", " ")
-        except:
-            raise ltfException("The provided date is not a valid ISO date")
-        pass
-
-        met_start = date2met(validated)
         logger.info("Running search starting at %s (MET: %s) for %s seconds" % (validated, met_start, args.duration))
 
         # Get the data

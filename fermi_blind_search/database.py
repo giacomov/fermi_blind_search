@@ -9,38 +9,31 @@ from sqlalchemy.orm import sessionmaker
 from fermi_blind_search.configuration import get_config
 
 
-# # create an engine that will connect to the database
-# engine = create_engine('sqlite:///test_db1.db', echo=True)
-#
-# # we need this to handle the tables
-# Base = declarative_base()
-# Base.metadata.bind = engine
-#
-# # defines the class that will connect to the database
-# Session = sessionmaker(bind=engine)
-
-# create an engine that will connect to the database
+# will store the engine that will connect to the database
 _engine = None
 
 # we need this to handle the tables
 Base = declarative_base()
-# Base.metadata.bind = engine
 
 # defines the class that will connect to the database
 Session = sessionmaker()
 
 
-
 class Database:
 
-    def __init__(self, configuration):
+    def __init__(self, config):
 
         global Base
         global Session
         global _engine
 
-        _engine = create_engine(configuration.get("Real time", "db_engine_url"))
+        # initialize the engine using parameters from the config file
+        _engine = create_engine(config.get("Real time", "db_engine_url"))
+
+        # bind the engine to the Base
         Base.metadata.bind = _engine
+
+        # bind the engine to the session
         Session.configure(bind=_engine)
 
     def create_tables(self):
@@ -187,6 +180,8 @@ class Results(Base):
 
 
 if __name__ == "__main__":
+
+    # TODO: remove the main class - used right now for testing
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', help='Path to config file', type=get_config, required=True)
