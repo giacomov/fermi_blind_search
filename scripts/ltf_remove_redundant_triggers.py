@@ -223,9 +223,11 @@ if __name__ == "__main__":
         # an array of lines, but just one line. Fix that
         data = np.array([data])
 
-    from fermi_blind_search.Configuration import configuration
+    # from fermi_blind_search.configuration import configuration
+    from fermi_blind_search.configuration import get_config
 
     # check for multiple triggers by same event,
+    configuration = get_config()
     min_dist = float(configuration.get("Post processing", "cluster_distance"))
     result = check_nearest(data, min_dist)
 

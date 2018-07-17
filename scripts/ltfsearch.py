@@ -47,7 +47,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    from fermi_blind_search.Configuration import configuration
+    # from fermi_blind_search.configuration import configuration
+    from fermi_blind_search.configuration import get_config
     import os
     import dateutil
     from fermi_blind_search import myLogging, ltf
@@ -151,6 +152,8 @@ if __name__ == '__main__':
         ft2file = os.path.abspath(os.path.expandvars(os.path.expanduser(args.ft2)))
 
     #  #Strip version name
+
+    configuration = get_config()
 
     irf = configuration.get("Analysis","irf")
 
