@@ -27,7 +27,7 @@ def are_we_at_slac():
 
 
 def make_analysis(date, duration, config_file, workdir, outfile):
-    cmd_line = ("ltf_search_for_transients.py --date %sT00:00:00 --duration %s --config_file %s "
+    cmd_line = ("ltf_search_for_transients.py --date %sT00:00:00 --duration %s --config %s "
                 "--workdir %s --outfile %s" % (date, duration, config_file, workdir, outfile))
 
     print(cmd_line)
