@@ -152,10 +152,9 @@ if __name__ == '__main__':
         ft2file = os.path.abspath(os.path.expandvars(os.path.expanduser(args.ft2)))
 
     #  #Strip version name
-
     configuration = get_config()
 
-    irf = configuration.get("Analysis","irf")
+    irf = configuration.get("Analysis", "irf")
 
     gtburstIrf = "_".join(irf.split("_")[:-1]).replace("P8R2", "P8")
 
@@ -215,7 +214,6 @@ if __name__ == '__main__':
                                                 configuration.get('Analysis', 'theta_cut'),
                                                 configuration.get('Analysis', 'emin'),
                                                 configuration.get('Analysis', 'emax'))
-
     timeInterval = ltf.TimeInterval(met_start,
                                     met_start + args.duration,
                                     cleaned_ft1,
