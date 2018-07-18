@@ -192,12 +192,12 @@ if __name__ == "__main__":
 
     db = Database(configuration)
     # db.create_tables()
-
-    analysis_to_add = {'met_start': 553492250.09, 'duration': 3000.2, 'counts': 400, 'outfile': 'woohoo/out.txt',
-                       'logfile': 'woohoo/log.txt'}
-    # another = {'met_start': .5, 'duration': 305.2, 'counts': 400, 'outfile': 'woohoo/out.txt',
+    #
+    # analysis_to_add = {'met_start': 553492250.09, 'duration': 3000.2, 'counts': 400, 'outfile': 'woohoo/out.txt',
     #                    'logfile': 'woohoo/log.txt'}
+    another = {'met_start': 410140803.000, 'duration': 21600, 'counts': 400, 'outfile': 'out.txt',
+                       'logfile': 'log.txt'}
 
-    db.add_analysis(analysis_to_add)
+    db.add_analysis(another)
     # db.add_analysis(another)
 
