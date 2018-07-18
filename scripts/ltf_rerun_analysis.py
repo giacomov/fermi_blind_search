@@ -35,7 +35,7 @@ def check_new_data(met_start, met_stop, counts):
     #     print("Could not make the directory %s" % data_path)
     #     raise
 
-    make_dir_if_not_exist(data_path)
+    # make_dir_if_not_exist(data_path)
 
     # get the path to execute mdcget.py
     mdcget_path = which("mdcget.py")
@@ -89,33 +89,22 @@ def get_data(data_path, met_start, met_stop):
 
 
 def run_ltf_search(analysis_path):
-    # make a directory to work in
-    # try:
-    #     os.makedirs(analysis_path + "/work")
-    # except:
-    #     print("Could not make the directory %s" % analysis_path + "/tmp")
-    #     raise
-    make_dir_if_not_exist(analysis_path + "/work")
 
     # get the path to execute ltf_search_for_transients.py
     ltf_search_for_transients_path = which("ltf_search_for_transients.py")
 
-    ltf_search_cmd_line = ('%s --inp_fts %s --config %s --outfile %s --logfile %s --workdir %s' %
+    ltf_search_cmd_line = ('%s --inp_fts %s --config %s --outfile %s --logfile %s' %
                            (ltf_search_for_transients_path,
                             ",".join([data_path + "/data_ft1.fit", data_path + "/data_ft2.fit"]),
                             configuration.config_file,
                             analysis_path + "/out.txt",
-                            analysis_path + "/log.txt",
-                            analysis_path + "/work"))
+                            analysis_path + "/log.txt"))
+    print( ltf_search_cmd_line)
+
+    # call ltf_seach_for_transients
     subprocess.check_call(ltf_search_cmd_line, shell=True)
     print("ltf_search complete")
 
-    # once the analysis has finished running, we remove the working directory
-    try:
-        shutil.rmtree(analysis_path + "/work")
-    except:
-        print("could not remove work directory %s" % analysis_path + "/work")
-        raise
     return
 
 
@@ -154,13 +143,8 @@ if __name__ == "__main__":
     analysis_path = os.path.abspath(os.path.expandvars(os.path.expanduser(base_path + "/" + str(met_start) + "_" +
                                                                           str(duration))))
     print("analysis path: %s" % analysis_path)
+
     # if the directory does not exist, create it
-    # if not os.path.exists(analysis_path):
-    #     try:
-    #         os.makedirs(analysis_path)
-    #     except:
-    #         print("Could not make the directory %s" % analysis_path)
-    #         raise
     make_dir_if_not_exist(analysis_path)
 
     # directory we will use to store data from mdcget.py
@@ -169,12 +153,23 @@ if __name__ == "__main__":
     print("data path: %s" % data_path)
     print("starting counts check")
 
+    # make a directory to store data from mcdget (if we fetch data)
+    make_dir_if_not_exist(data_path)
+
     if check_new_data(met_start, met_stop, args.counts):
         # there is new data! so we rerun the analysis
         print("We made it!!!")
         get_data(data_path, met_start, met_stop)
-        # run_ltf_search(analysis_path)
+        print("finished getting data, about to start search")
+        run_ltf_search(analysis_path)
         # process_results()
+
+    # clean up data directory
+    try:
+        shutil.rmtree(data_path)
+    except:
+        print("Could not remove data directory %s " % data_path)
+        raise
 
 
 
