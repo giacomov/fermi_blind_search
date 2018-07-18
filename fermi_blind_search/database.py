@@ -140,7 +140,7 @@ class Database:
                                                   candidate_vals['met_start'] - 10 <= Results.met_start,
                                                   Results.met_start <= candidate_vals['met_start'] + 10,
                                                   candidate_vals['interval'] - 10 <= Results.interval,
-                                                  Results.interval <= candidate_vals['interval'] + 10))
+                                                  Results.interval <= candidate_vals['interval'] + 10)).all()
 
 
 class Analysis(Base):
@@ -195,9 +195,12 @@ if __name__ == "__main__":
     #
     # analysis_to_add = {'met_start': 553492250.09, 'duration': 3000.2, 'counts': 400, 'outfile': 'woohoo/out.txt',
     #                    'logfile': 'woohoo/log.txt'}
-    another = {'met_start': 410140803.000, 'duration': 21600, 'counts': 400, 'outfile': 'out.txt',
-                       'logfile': 'log.txt'}
-
-    db.add_analysis(another)
+    # another = {'met_start': 410140803.000, 'duration': 21600, 'counts': 400, 'outfile': 'out.txt',
+    #                    'logfile': 'log.txt'}
+    #
     # db.add_analysis(another)
+    # db.add_analysis(another)
+
+    result_to_add = {'met_start': 410157950.022, 'dec': -34.0, 'ra': 20.0, 'interval': 225.83599996566772}
+    db.add_candidate(result_to_add)
 

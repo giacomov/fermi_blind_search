@@ -162,7 +162,7 @@ if __name__ == "__main__":
         get_data(data_path, met_start, met_stop)
         print("finished getting data, about to start search")
         run_ltf_search(analysis_path)
-        # process_results()
+        process_results()
 
     # clean up data directory
     try:

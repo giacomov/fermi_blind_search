@@ -4,6 +4,7 @@ import smtplib
 import numpy as np
 
 from fermi_blind_search.configuration import get_config
+from fermi_blind_search.database import Database
 
 
 def read_results(filename):
@@ -112,9 +113,26 @@ def write_to_file(email_string, name):
     f.close()
 
 
-def already_in_db(block_dict, ra, dec):
+def already_in_db(block_dict, ra, dec, config):
     #returns true if the block is in the db
-    return False
+
+    # get the interval of the transient
+    interval = block_dict['stop_time'] - block_dict['start_time']
+
+    # set up the dictionary to check against the db
+    new_block_dict = {'ra': float(ra), 'dec': float(dec), 'met_start': block_dict['start_time'], 'interval': interval}
+
+    print(new_block_dict)
+    # establish db connection
+    db = Database(config)
+
+    # get any transients that match ours
+    matches = db.get_results(new_block_dict)
+
+    print(matches)
+    print(len(matches) > 0)
+
+    return len(matches) > 0
 
 
 if __name__ == "__main__":
@@ -132,7 +150,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     configuration = args.config
-
+    print(args.check_db)
     # read each detected transient into a dictionary and store them as a list
     events = read_results(args.results)
 
@@ -167,7 +185,12 @@ if __name__ == "__main__":
                 dec = events[i]['dec']
 
                 for j in range(len(blocks_to_email[i])):
-                    if not already_in_db(blocks_to_email[i][j], ra, dec):
+                    if args.check_db and already_in_db(blocks_to_email[i][j], ra, dec, configuration):
+                        # the transient is already in the database, don't send another email
+                        print("transient candidate already found, not sending email")
+                    else:
+                        print('back in email part')
+                        print(blocks_to_email[i][j])
                         # format the body of the email
                         email_body = format_email(blocks_to_email[i][j], ra, dec)
 
@@ -205,9 +228,14 @@ if __name__ == "__main__":
             dec = events[i]['dec']
 
             for j in range(len(blocks_to_email[i])):
+                if args.check_db and already_in_db(blocks_to_email[i][j], ra, dec, configuration):
+                    # the transient is already in the database, don't send another email
+                    print("transient candidate already found, not writing to file")
+                else:
+                    print('back in email part')
+                    print(blocks_to_email[i][j])
+                    # format the body of the "email"
+                    email_body = format_email(blocks_to_email[i][j], ra, dec)
 
-                # format the body of the "email"
-                email_body = format_email(blocks_to_email[i][j], ra, dec)
-
-                # write the file using the filename format <name_of_transient>_block<#>
-                write_to_file(email_body, events[i]['name'] + '_block' + str(j))
+                    # write the file using the filename format <name_of_transient>_block<#>
+                    write_to_file(email_body, events[i]['name'] + '_block' + str(j))
