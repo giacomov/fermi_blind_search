@@ -4,6 +4,7 @@ import datetime
 import time
 
 from fermi_blind_search.data_files import get_data_file_path
+from fermi_blind_search.configuration import get_config
 from GtBurst import IRFS
 import GtApp
 
@@ -44,10 +45,10 @@ if __name__ == '__main__':
                         required=False, default=None)
     parser.add_argument('--ft2', help='User-provided ft2 file (default: download from data catalog at Stanford)',
                         required=False, default=None)
+    parser.add_argument('--config', help="Path to configuration file", type=get_config, required=True)
 
     args = parser.parse_args()
 
-    from fermi_blind_search.configuration import configuration
     import os
     import dateutil
     from fermi_blind_search import myLogging, ltf
@@ -151,8 +152,9 @@ if __name__ == '__main__':
         ft2file = os.path.abspath(os.path.expandvars(os.path.expanduser(args.ft2)))
 
     #  #Strip version name
+    configuration = args.config
 
-    irf = configuration.get("Analysis","irf")
+    irf = configuration.get("Analysis", "irf")
 
     gtburstIrf = "_".join(irf.split("_")[:-1]).replace("P8R2", "P8")
 
@@ -212,7 +214,6 @@ if __name__ == '__main__':
                                                 configuration.get('Analysis', 'theta_cut'),
                                                 configuration.get('Analysis', 'emin'),
                                                 configuration.get('Analysis', 'emax'))
-
     timeInterval = ltf.TimeInterval(met_start,
                                     met_start + args.duration,
                                     cleaned_ft1,

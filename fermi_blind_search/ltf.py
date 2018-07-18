@@ -27,7 +27,7 @@ from GtBurst.GtBurstException import GtBurstException
 import scipy.stats.distributions
 
 from fermi_blind_search import BayesianBlocks
-from fermi_blind_search.configuration import configuration
+from fermi_blind_search.configuration import get_config
 from fermi_blind_search.ltfException import ltfException
 from fermi_blind_search.SkyDir import SkyDir
 from fermi_blind_search.bkge import ROIBackgroundEstimator
@@ -79,6 +79,8 @@ def get_IAU_name(ra,dec):
 
 def getConnectionToResultsStorage():
     # Get host and port of the DB
+
+    configuration = get_config()
 
     port = int(configuration.get('Database', 'port'))
     host = configuration.get('Database', 'host')
@@ -138,6 +140,7 @@ class AllSkySearch(object):
     def go(self, prepare_figures=True):
 
         thisLogger = myLogging.log.getLogger("AllSkySearch.go")
+        configuration = get_config()
 
         intervals = [self.timeInterval] * self.npoints
         anDefs = [self.analysisDefinition] * self.npoints
@@ -293,7 +296,7 @@ class AllSkySearch(object):
             # Now create a name according to the IAU Specifications for Nomenclature
             name = get_IAU_name(this_ra, this_dec)
 
-            this_row = [name.replace(" ","_"),
+            this_row = [name.replace(" ", ""),
                         str(this_ra),
                         str(this_dec),
                         ",".join(tstarts),
@@ -938,6 +941,7 @@ class SearchRegion(Selector):
                         "Zero or negative npred (%s) while observed are %s for region centered in %s,%s in time interval %s - %s" % (
                         npred, nobs, self.ra, self.dec, t1, t2))
 
+            configuration = get_config()
             if (nobs < int(configuration.get("Analysis", "Min_counts"))):
                 sys.stderr.write(
                     "WARNING: too few counts (%s) in interval %.3f-%.3f (npred = %s)" % (nobs, t1, t2, npred))

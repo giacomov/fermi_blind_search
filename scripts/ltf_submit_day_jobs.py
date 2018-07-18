@@ -8,6 +8,7 @@ import subprocess
 
 
 from fermi_blind_search.which import which
+from fermi_blind_search.configuration import get_config
 
 def are_we_at_slac():
     
@@ -32,17 +33,6 @@ def valid_date(s):
         msg = "Not a valid date: '{0}'.".format(s)
 
         raise argparse.ArgumentTypeError(msg)
-
-
-def valid_configuration(s):
-
-    # Set environment
-    os.environ['LTF_CONFIG_FILE'] = s
-
-    # Get configuration
-    from fermi_blind_search.configuration import configuration
-
-    return configuration
 
 
 def range_of_dates(start_date, end_date):
@@ -71,8 +61,7 @@ if __name__ == "__main__":
                         type=valid_date, required=True)
     parser.add_argument('--end_date', help='''End date in ISO format. Ex: "2010-12-31" "''',
                         type=valid_date, required=True)
-    parser.add_argument('--config', help="Path to configuration file",
-                        type=valid_configuration, required=True)
+    parser.add_argument('--config', help="Path to configuration file", type=get_config, required=True)
     parser.add_argument('--outdir', help="Directory for results (must be on NFS/AFS)",
                         type=str, required=True)
     parser.add_argument('--logdir', help="Directory for logs (must be on NFS/AFS)",
