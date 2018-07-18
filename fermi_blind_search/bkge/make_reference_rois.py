@@ -3,11 +3,12 @@ import numpy
 import os
 import subprocess
 
-from fermi_blind_search.configuration import configuration
+# from fermi_blind_search.configuration import configuration
 from fermi_blind_search.configuration import get_config
 from scripts.ltfsearch import computeSpread
 
 from fermi_blind_search.fits_handling.fits_interface import pyfits
+
 
 class ReferenceROIsMaker(object):
     
@@ -144,5 +145,3 @@ class ReferenceROIsMaker(object):
         
             gtselect.run()
             print("\ndone\n")
-            
-    

@@ -35,17 +35,6 @@ def valid_date(s):
         raise argparse.ArgumentTypeError(msg)
 
 
-# def valid_configuration(s):
-#
-#     # Set environment
-#     os.environ['LTF_CONFIG_FILE'] = s
-#
-#     # Get configuration
-#     from fermi_blind_search.configuration import configuration
-#
-#     return configuration
-
-
 def range_of_dates(start_date, end_date):
 
     # A generator for days between the two provided dates

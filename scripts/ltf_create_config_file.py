@@ -47,6 +47,19 @@ end_interval = 12
 # path to where to store results, log files, and tmp files
 base_path = ./real_time_work
 
+[Results email]
+# Host server and port number for sending emails
+host = ''
+port = 0
+
+# Login credentials for sending emails
+username = ''
+pword = ''
+
+# Address to send the emails to and email subject heading
+recipient = ''
+subject = ''
+
 [Hardware]
 ncpus = 10
 '''
