@@ -34,6 +34,19 @@ Min_counts = 3
 # be checked and marked as the same transient if they overlap in time
 cluster_distance = 15.0
 
+[Results email]
+# Host server and port number for sending emails
+host = ''
+port = 0
+
+# Login credentials for sending emails
+username = ''
+pword = ''
+
+# Address to send the emails to and email subject heading
+recipient = ''
+subject = ''
+
 [Hardware]
 ncpus = 10
 '''

@@ -27,7 +27,6 @@ from GtBurst.GtBurstException import GtBurstException
 import scipy.stats.distributions
 
 from fermi_blind_search import BayesianBlocks
-# from fermi_blind_search.configuration import configuration
 from fermi_blind_search.configuration import get_config
 from fermi_blind_search.ltfException import ltfException
 from fermi_blind_search.SkyDir import SkyDir
