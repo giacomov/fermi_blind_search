@@ -191,9 +191,9 @@ if __name__ == "__main__":
     configuration = args.config
 
     db = Database(configuration)
-    db.create_tables()
+    # db.create_tables()
 
-    analysis_to_add = {'met_start': .5, 'duration': 300.2, 'counts': 400, 'outfile': 'woohoo/out.txt',
+    analysis_to_add = {'met_start': 553492250.09, 'duration': 3000.2, 'counts': 400, 'outfile': 'woohoo/out.txt',
                        'logfile': 'woohoo/log.txt'}
     # another = {'met_start': .5, 'duration': 305.2, 'counts': 400, 'outfile': 'woohoo/out.txt',
     #                    'logfile': 'woohoo/log.txt'}
