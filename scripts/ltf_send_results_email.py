@@ -1,50 +1,25 @@
 #!/usr/bin/env python
 import argparse
 import smtplib
-# from email.mime.text import MIMEText
-import os
 import numpy as np
 
-
-def valid_configuration(s):
-
-    # Set environment
-    os.environ['LTF_CONFIG_FILE'] = s
-
-    # Get configuration
-    from fermi_blind_search.configuration import configuration
-
-    return configuration
+from fermi_blind_search.configuration import get_config
 
 
 def read_results(filename):
 
-    # data = np.recfromtxt(filename, delimiter=' ', names=True, encoding=None)
-    #
-    # return data
+    data = np.recfromtxt(filename, delimiter=' ', names=True, encoding=None)
 
-    with open(filename) as f:
-
-        # each detected transient is written on a new line
-        results_list = f.read().split('\n')
-
-    # store the return values here
     events = []
+    for i in range(len(data)):
 
-    # the first line of the file is the header, so we ignore this by starting at index 1
-    for i in range(1,len(results_list)):
-
-        # splits on all whitespace
-        e = results_list[i].split()
-
-        # there may be a newline at the end of the file, we want to ignore it
-        if len(e) > 0:
-
-            # we convert start_times stop_time, counts, and probs to float values because they will be used
-            # for comparisons when determining which blocks to include in the email
-            events.append({'name': e[0], 'ra': e[1], 'dec': e[2], 'start_times': [float(i) for i in e[3].split(',')],
-                           'stop_times': [float(i) for i in e[4].split(',')],
-                           'counts': [float(i) for i in e[5].split(',')], 'probs': [float(i) for i in e[6].split(',')]})
+        # we convert start_times stop_time, counts, and probs to float values because they will be used
+        # for comparisons when determining which blocks to include in the email
+        events.append({'name': data[i].name, 'ra': data[i].ra, 'dec': data[i].dec,
+                       'start_times': [float(j) for j in data[i].tstarts.split(',')],
+                       'stop_times': [float(j) for j in data[i].tstops.split(',')],
+                       'counts': [float(j) for j in data[i].counts.split(',')],
+                       'probs': [float(j) for j in data[i].probabilities.split(',')]})
     return events
 
 
@@ -137,6 +112,11 @@ def write_to_file(email_string, name):
     f.close()
 
 
+def already_in_db(block_dict, ra, dec):
+    #returns true if the block is in the db
+    return False
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="""Format and send an email from a
@@ -145,9 +125,13 @@ if __name__ == "__main__":
                         required=True)
     parser.add_argument('--email', help='If active send email', action="store_true")
     parser.add_argument('--config', help='Path to the configuration file',
-                        type=valid_configuration, required=True)
+                        type=get_config, required=True)
+    parser.add_argument('--check_db', help='If active check each block against the database of found transients',
+                        action="store_true")
 
     args = parser.parse_args()
+
+    configuration = args.config
 
     # read each detected transient into a dictionary and store them as a list
     events = read_results(args.results)
@@ -166,8 +150,6 @@ if __name__ == "__main__":
 
     if args.email:
 
-        from fermi_blind_search.configuration import configuration
-
         # # open the smtp email server and login
         # s = smtplib.SMTP(host=configuration.get("Results email", "host"),
         #                   port=int(configuration.get("Results email", "port")))
@@ -185,13 +167,13 @@ if __name__ == "__main__":
                 dec = events[i]['dec']
 
                 for j in range(len(blocks_to_email[i])):
+                    if not already_in_db(blocks_to_email[i][j], ra, dec):
+                        # format the body of the email
+                        email_body = format_email(blocks_to_email[i][j], ra, dec)
 
-                    # format the body of the email
-                    email_body = format_email(blocks_to_email[i][j], ra, dec)
-
-                    server.sendmail(configuration.get("Results email", "username"),
-                                    configuration.get("Results email", "recipient"),
-                                    email_body)
+                        server.sendmail(configuration.get("Results email", "username"),
+                                        configuration.get("Results email", "recipient"),
+                                        email_body)
 
                     # send the email
                     # msg = MIMEText(email_body)
