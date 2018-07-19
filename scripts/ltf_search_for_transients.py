@@ -74,11 +74,19 @@ if __name__ == "__main__":
 
         with fits.open(str(ft1_name)) as ft1:
 
-            sim_start = ft1[0].header['TSTART']
-            sim_end = ft1[0].header['TSTOP']
+            evt_start = ft1[0].header['TSTART']
+            evt_end = ft1[0].header['TSTOP']
 
-        duration = sim_end - sim_start
-        date = sim_start
+        with fits.open(str(ft2_name)) as ft2:
+
+            scdata_start = ft2["SC_DATA"].field("START").min()
+            scdata_end = ft2["SC_DATA"].field("STOP").max()
+
+        good_start = max(evt_start, scdata_start)
+        good_stop = min(evt_end, scdata_end)
+
+        duration = good_stop - good_start
+        date = good_start
         extra_args = ['--ft1', ft1_name, '--ft2', ft2_name]
         # bayesian blocks
 
