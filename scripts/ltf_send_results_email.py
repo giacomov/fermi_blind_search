@@ -9,18 +9,32 @@ from fermi_blind_search.database import Database
 
 def read_results(filename):
 
+    print("reading results from file")
     data = np.recfromtxt(filename, delimiter=' ', names=True, encoding=None)
 
     events = []
-    for i in range(len(data)):
 
-        # we convert start_times stop_time, counts, and probs to float values because they will be used
-        # for comparisons when determining which blocks to include in the email
-        events.append({'name': data[i].name, 'ra': data[i].ra, 'dec': data[i].dec,
-                       'start_times': [float(j) for j in data[i].tstarts.split(',')],
-                       'stop_times': [float(j) for j in data[i].tstops.split(',')],
-                       'counts': [float(j) for j in data[i].counts.split(',')],
-                       'probs': [float(j) for j in data[i].probabilities.split(',')]})
+    if data.size == 1:
+        print("size 1")
+        # when there is only one result, we have to deal with the recarray differently
+        # because the types of the values is different
+        events.append({'name': str(data.name.reshape(1,)[0]), 'ra': float(data.ra.reshape(1,)[0]),
+                       'dec': float(data.dec.reshape(1,)[0]),
+                       'start_times': [float(j) for j in data.tstarts.reshape(1,)[0].split(',')],
+                       'stop_times': [float(j) for j in data.tstops.reshape(1,)[0].split(',')],
+                       'counts': [float(j) for j in data.counts.reshape(1,)[0].split(',')],
+                       'probs': [float(j) for j in data.probabilities.reshape(1,)[0].split(',')]})
+    else:
+        print("other size")
+        for i in range(data.size):
+            # we convert start_times stop_time, counts, and probs to float values because they will be used
+            # for comparisons when determining which blocks to include in the email
+            events.append({'name': str(data[i].name), 'ra': float(data[i].ra), 'dec': float(data[i].dec),
+                           'start_times': [float(j) for j in data[i].tstarts.split(',')],
+                           'stop_times': [float(j) for j in data[i].tstops.split(',')],
+                           'counts': [float(j) for j in data[i].counts.split(',')],
+                           'probs': [float(j) for j in data[i].probabilities.split(',')]})
+
     return events
 
 
@@ -101,7 +115,7 @@ def format_email(block_dict, ra, dec):
     interval = block_dict['stop_time'] - block_dict['start_time']
 
     string = ('TITLE: GCN/GBM NOTICE \nNOTICE_TYPE: User-supplied job \nGRB_RA: %s \nGRB_DEC: %s \nGRB_MET: %s \nANALYSIS_INTERVAL: %s\n'
-              % (ra, dec, str(block_dict['start_time']), str(interval)))
+              % (str(ra), str(dec), str(block_dict['start_time']), str(interval)))
 
     return string
 

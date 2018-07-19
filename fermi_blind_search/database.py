@@ -87,6 +87,7 @@ class Database:
         except KeyError:
             print('ERROR: The analysis you want to add does not have the proper fields!')
             raise
+        # TODO: need to put a catch all except here?
         else:
             # open a session, add the analysis to the table, close the session
             session = Session()
@@ -102,6 +103,7 @@ class Database:
         results = session.query(Analysis).filter(Analysis.met_start == met_start).filter(Analysis.duration == duration).all()
 
         # check that there is only one analysis that matches these parameters
+        print("len of results matching query: %s" % len(results))
         assert len(results) == 1, 'More than one analysis exists with these parameters!'
 
         analysis = results[0]
@@ -128,6 +130,7 @@ class Database:
         except KeyError:
             print('ERROR: The result you want to add does not have the proper fields')
             raise
+        # TODO: need to add a catch all except here?
         else:
             # open a session, add the result to the table, close the session
             session = Session()

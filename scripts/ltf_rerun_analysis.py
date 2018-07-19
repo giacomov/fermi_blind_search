@@ -86,6 +86,7 @@ def get_data(data_path, met_start, met_stop, config):
     ft1_data = pyfits.getdata(data_path + "/data_ft1.fit", "EVENTS")
 
     # update the counts stored in the database
+    print("Updating Database")
     counts = len(ft1_data)
     db = Database(config)
     db.update_analysis_counts(met_start, float(met_stop) - float(met_start), counts)
@@ -98,9 +99,11 @@ def run_ltf_search(analysis_path):
     # get the path to execute ltf_search_for_transients.py
     ltf_search_for_transients_path = which("ltf_search_for_transients.py")
 
+    fit_file_path = ",".join([data_path + "/data_ft1.fit", data_path + "/data_ft2.fit"])
+    print(fit_file_path)
     ltf_search_cmd_line = ('%s --inp_fts %s --config %s --outfile %s --logfile %s' %
                            (ltf_search_for_transients_path,
-                            ",".join([data_path + "/data_ft1.fit", data_path + "/data_ft2.fit"]),
+                            fit_file_path,
                             configuration.config_file,
                             analysis_path + "/out.txt",
                             analysis_path + "/log.txt"))
@@ -174,7 +177,7 @@ if __name__ == "__main__":
 
     if check_new_data(met_start, met_stop, args.counts):
         # there is new data! so we rerun the analysis
-
+        print("We need to rerun the analysis, fetching data...")
         # first actually fetch the data we will use as a single file
         get_data(data_path, met_start, met_stop, configuration)
         print("finished getting data, about to start search")
