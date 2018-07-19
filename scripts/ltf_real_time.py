@@ -34,9 +34,8 @@ if __name__ == "__main__":
     configuration = args.config
 
     # get the interval to rerun analyses over and convert them to seconds
-    # TODO: remove the * 2
-    start_rerun_interval = int(configuration.get("Real time", "start_interval")) * 3600 * 2
-    end_rerun_interval = int(configuration.get("Real time", "end_interval")) * 3600 * 2
+    start_rerun_interval = int(configuration.get("Real time", "start_interval")) * 3600
+    end_rerun_interval = int(configuration.get("Real time", "end_interval")) * 3600
 
     # start a connection with the database storing analysis and transient candidates
     real_time_db = Database(configuration)
@@ -47,7 +46,8 @@ if __name__ == "__main__":
     most_recent_event_time = c.fetchall()[0][0]
 
     # TODO: remove this
-    most_recent_event_time = 410227203.000
+    # most_recent_event_time = 410227203.000
+    print(most_recent_event_time - end_rerun_interval)
 
     print("most recent event: %s" % most_recent_event_time)
 

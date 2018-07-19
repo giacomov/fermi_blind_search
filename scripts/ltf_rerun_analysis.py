@@ -74,7 +74,7 @@ def get_data(data_path, met_start, met_stop, config):
     # get the path to execute mdcget.py
     mdcget_path = which("mdcget.py")
 
-    mdcget_cmd_line = ('%s --met_start %s --met_stop %s --outroot %s' % (mdcget_path, met_start, met_stop,
+    mdcget_cmd_line = ('%s --met_start %s --met_stop %s --outroot %s' % (mdcget_path, met_start - 3000, met_stop + 3000,
                                                                          data_path + "/data"))
 
     print(mdcget_cmd_line)
@@ -122,7 +122,8 @@ def process_results(analysis_path, config_path):
     send_results_email_path = which("ltf_send_results_email.py")
 
     # format the command
-    send_results_cmd_line = ("%s --results %s --config %s --email --check_db" % (send_results_email_path,
+    # TODO: When ready to send email, add --email
+    send_results_cmd_line = ("%s --results %s --config %s --check_db" % (send_results_email_path,
                                                                                  analysis_path + "/out.txt",
                                                                                  config_path))
     print(send_results_cmd_line)

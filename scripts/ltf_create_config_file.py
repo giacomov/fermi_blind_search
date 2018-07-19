@@ -54,7 +54,6 @@ port = 0
 
 # Login credentials for sending emails
 username = ''
-pword = ''
 
 # Address to send the emails to and email subject heading
 recipient = ''
