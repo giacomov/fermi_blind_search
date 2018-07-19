@@ -9,6 +9,7 @@ import numpy as np
 
 from fermi_blind_search.configuration import get_config
 from fermi_blind_search.which import which
+from fermi_blind_search.database import Database
 
 # What needs to happen in this script
 # 1. call mdcget on the time interval it gets
@@ -19,7 +20,10 @@ from fermi_blind_search.which import which
 
 
 def make_dir_if_not_exist(path):
+
+    # check if the directory already exists
     if not os.path.exists(path):
+        # it doesn't! so we try to make it
         try:
             os.makedirs(path)
         except:
@@ -28,23 +32,14 @@ def make_dir_if_not_exist(path):
 
 
 def check_new_data(met_start, met_stop, counts):
-    # make the directory to store the data from mdcget
-    # try:
-    #     os.makedirs(data_path)
-    # except:
-    #     print("Could not make the directory %s" % data_path)
-    #     raise
-
-    # make_dir_if_not_exist(data_path)
 
     # get the path to execute mdcget.py
     mdcget_path = which("mdcget.py")
-    #
-    # mdcget_cmd_line = ('%s --met_start %s --met_stop %s --outroot %s' % (mdcget_path, met_start, met_stop,
-    #                                                               data_path + "/data"))
 
     # command to get the files that would be used in this analysis
     mdcget_cmd_line = ('%s --met_start %s --met_stop %s --type FT1' % (mdcget_path, met_start, met_stop))
+
+    print(mdcget_cmd_line)
 
     # call mdcget.py, wait for it to complete, and get its output
     p = subprocess.Popen(mdcget_cmd_line, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -55,7 +50,7 @@ def check_new_data(met_start, met_stop, counts):
     ft1_files = out.split("\n")
 
     new_counts = 0
-    for i in range(len(ft1_files) -1):
+    for i in range(len(ft1_files) - 1):
         # open the fit file
         ft1_data = pyfits.getdata(ft1_files[i], "EVENTS")
 
@@ -71,7 +66,7 @@ def check_new_data(met_start, met_stop, counts):
     return new_counts > counts
 
 
-def get_data(data_path, met_start, met_stop):
+def get_data(data_path, met_start, met_stop, config):
 
     # make directory to store the data
     make_dir_if_not_exist(data_path)
@@ -82,8 +77,18 @@ def get_data(data_path, met_start, met_stop):
     mdcget_cmd_line = ('%s --met_start %s --met_stop %s --outroot %s' % (mdcget_path, met_start, met_stop,
                                                                          data_path + "/data"))
 
+    print(mdcget_cmd_line)
+
     # call mdcget and wait for it to return
     subprocess.check_call(mdcget_cmd_line, shell=True)
+
+    # get the counts from this call just in case new data has arrive between the last call to mdcget
+    ft1_data = pyfits.getdata(data_path + "/data_ft1.fit", "EVENTS")
+
+    # update the counts stored in the database
+    counts = len(ft1_data)
+    db = Database(config)
+    db.update_analysis_counts(met_start, float(met_stop) - float(met_start), counts)
 
     return
 
@@ -99,7 +104,7 @@ def run_ltf_search(analysis_path):
                             configuration.config_file,
                             analysis_path + "/out.txt",
                             analysis_path + "/log.txt"))
-    print( ltf_search_cmd_line)
+    print(ltf_search_cmd_line)
 
     # call ltf_seach_for_transients
     subprocess.check_call(ltf_search_cmd_line, shell=True)
@@ -108,8 +113,19 @@ def run_ltf_search(analysis_path):
     return
 
 
-def process_results():
-    pass
+def process_results(analysis_path, config_path):
+
+    # get path to ltf_send_results_email
+    send_results_email_path = which("ltf_send_results_email.py")
+
+    # format the command
+    send_results_cmd_line = ("%s --results %s --config %s --email --check_db" % (send_results_email_path,
+                                                                                 analysis_path + "/out.txt",
+                                                                                 config_path))
+    print(send_results_cmd_line)
+
+    # execute
+    subprocess.check_call(send_results_cmd_line, shell=True)
 
 
 if __name__ == "__main__":
@@ -158,11 +174,16 @@ if __name__ == "__main__":
 
     if check_new_data(met_start, met_stop, args.counts):
         # there is new data! so we rerun the analysis
-        print("We made it!!!")
-        get_data(data_path, met_start, met_stop)
+
+        # first actually fetch the data we will use as a single file
+        get_data(data_path, met_start, met_stop, configuration)
         print("finished getting data, about to start search")
+
+        # run ltf_search_for_transients
         run_ltf_search(analysis_path)
-        process_results()
+
+        # check results against candidates we have already found and send emails
+        process_results(analysis_path, configuration.config_file)
 
     # clean up data directory
     try:

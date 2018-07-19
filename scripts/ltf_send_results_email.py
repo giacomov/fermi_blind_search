@@ -108,9 +108,8 @@ def format_email(block_dict, ra, dec):
 
 def write_to_file(email_string, name):
 
-    f = open(name, 'w+')
-    f.write(email_string)
-    f.close()
+    with open(name, 'w+') as f:
+        f.write(email_string)
 
 
 def already_in_db(block_dict, ra, dec, config):
@@ -131,6 +130,10 @@ def already_in_db(block_dict, ra, dec, config):
 
     print(matches)
     print(len(matches) > 0)
+
+    if len(matches) == 0:
+        # add the candidate to the database
+        db.add_candidate(new_block_dict)
 
     return len(matches) > 0
 

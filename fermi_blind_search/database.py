@@ -69,15 +69,21 @@ class Database:
                 raise
 
     def add_analysis(self, analysis_vals):
-        # TODO: add check to make sure analysis_vals has the correct fields
+        # TODO: which check that analysis_vals contains the correct field?
         # TODO: do we want to add a check that the analysis doesn't already exist?
+
+        assert (analysis_vals['met_start'] is not None and analysis_vals['duration'] is not None and
+                analysis_vals['counts'] is not None and analysis_vals['outfile'] is not None and
+                analysis_vals['logfile'] is not None), "One of the parameters to enter the analysis into the " \
+                                                       "database is missing. Parameters are met_start, duration, " \
+                                                       "counts, outfile, and logfile"
 
         try:
 
             # set the values of the analysis to be added to the table
             new_analysis = Analysis(met_start=analysis_vals['met_start'], duration=analysis_vals['duration'],
-                                counts=analysis_vals['counts'], outfile=analysis_vals['outfile'],
-                                logfile=analysis_vals['logfile'])
+                                    counts=analysis_vals['counts'], outfile=analysis_vals['outfile'],
+                                    logfile=analysis_vals['logfile'])
         except KeyError:
             print('ERROR: The analysis you want to add does not have the proper fields!')
             raise
@@ -87,10 +93,18 @@ class Database:
             session.add(new_analysis)
             session.commit()
 
-    def update_analysis_counts(self, analysis, new_counts):
+    def update_analysis_counts(self, met_start, duration, new_counts):
 
         # open a session with the DB
         session = Session()
+
+        # get the analysis to be updated
+        results = session.query(Analysis).filter(Analysis.met_start == met_start).filter(Analysis.duration == duration).all()
+
+        # check that there is only one analysis that matches these parameters
+        assert len(results) == 1, 'More than one analysis exists with these parameters!'
+
+        analysis = results[0]
 
         # update the counts column of the analysis in question
         analysis.counts = new_counts
@@ -99,8 +113,13 @@ class Database:
         session.commit()
 
     def add_candidate(self, candidate_vals):
-        # TODO: add check to make sure candidate_vals has the correct fields
+        # TODO: which check that condidate_vals contains the correct field?
         # TODO: do we want to add a check that the candidate doesn't already exist?
+
+        assert (candidate_vals['ra'] is not None and candidate_vals['dec'] is not None and
+                candidate_vals['met_start'] is not None and candidate_vals['interval'] is not None), \
+            "One of the parameters to enter the candidate into the database is missing. Parameters are ra, dec, " \
+            "met_start, and interval"
 
         try:
             # set the values of the result to be added to the table
