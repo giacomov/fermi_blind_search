@@ -20,6 +20,13 @@ def make_GTI_from_FT2(ft2filename, filter_expression, gti_filename, overwrite=Tr
     with fitsio.FITS(ft2filename, 'r') as fits:
 
         indexes_to_keep = fits['SC_DATA'].where(filter_expression)
+
+        # Check whether we have any interval at all
+        if np.sum(indexes_to_keep) == 0:
+
+            # No interval survived the filter
+            return [], []
+
         indexes_to_keep.sort()
 
         data = fits['SC_DATA'].read(rows=indexes_to_keep, columns=['START', 'STOP'])

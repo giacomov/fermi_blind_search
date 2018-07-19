@@ -583,6 +583,14 @@ class Selector(object):
         gti_starts, gti_stops = make_GTI_from_FT2(self.timeInterval.ft2, filter_expression, gti_file, overwrite=True,
                                                   force_start=tstart, force_stop=tstop)
 
+        assert len(gti_starts) == len(gti_stops), "GTI starts and stop out of sync. This is a bug."
+
+        if len(gti_starts) == 0:
+
+            # No GTIs, which means no events, let's return 0
+
+            return "", 0
+
         gti_filter = "gtifilter('%s')" % gti_file
         energy_filter = "(ENERGY >= %s) && (ENERGY <= %s)" % (self.analysisDef.emin, self.analysisDef.emax)
         flt = '(%s) && (%s)' % (energy_filter, gti_filter)
