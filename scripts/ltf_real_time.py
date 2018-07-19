@@ -24,8 +24,6 @@ def rerun_analysis(rerun_analysis_path, met_start, duration, counts, outfile, lo
 
 if __name__ == "__main__":
 
-    # TODO: figure out how to handle the analysis of the past 12 hours
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', help='Path to config file', type=get_config, required=True)
 
@@ -37,13 +35,15 @@ if __name__ == "__main__":
     start_rerun_interval = int(configuration.get("Real time", "start_interval")) * 3600
     end_rerun_interval = int(configuration.get("Real time", "end_interval")) * 3600
 
-    # start a connection with the database
+    # start a connection with the database storing analysis and transient candidates
     real_time_db = Database(configuration)
 
     # get the time of the most recent event
     event_db = DB.DB()
     c = event_db.query(''' select max(MET_stop) from FT1''')
     most_recent_event_time = c.fetchall()[0][0]
+
+    print("most recent event: %s" % most_recent_event_time)
 
     print("Fetching all analyses that were run using data from %s to %s" %
           (most_recent_event_time - start_rerun_interval, most_recent_event_time - end_rerun_interval))
