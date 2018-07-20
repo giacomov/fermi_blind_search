@@ -20,20 +20,20 @@ def read_results(filename):
         # because the types of the values is different
         events.append({'name': str(data.name.reshape(1,)[0]), 'ra': float(data.ra.reshape(1,)[0]),
                        'dec': float(data.dec.reshape(1,)[0]),
-                       'start_times': [float(j) for j in data.tstarts.reshape(1,)[0].split(',')],
-                       'stop_times': [float(j) for j in data.tstops.reshape(1,)[0].split(',')],
-                       'counts': [float(j) for j in data.counts.reshape(1,)[0].split(',')],
-                       'probs': [float(j) for j in data.probabilities.reshape(1,)[0].split(',')]})
+                       'start_times': [float(j) for j in str(data.tstarts.reshape(1,)[0]).split(',')],
+                       'stop_times': [float(j) for j in str(data.tstops.reshape(1,)[0]).split(',')],
+                       'counts': [float(j) for j in str(data.counts.reshape(1,)[0]).split(',')],
+                       'probs': [float(j) for j in str(data.probabilities.reshape(1,)[0]).split(',')]})
     else:
         print("other size")
-        for i in range(data.size):
+        for i in range(len(data)):
             # we convert start_times stop_time, counts, and probs to float values because they will be used
             # for comparisons when determining which blocks to include in the email
             events.append({'name': str(data[i].name), 'ra': float(data[i].ra), 'dec': float(data[i].dec),
-                           'start_times': [float(j) for j in data[i].tstarts.split(',')],
-                           'stop_times': [float(j) for j in data[i].tstops.split(',')],
-                           'counts': [float(j) for j in data[i].counts.split(',')],
-                           'probs': [float(j) for j in data[i].probabilities.split(',')]})
+                           'start_times': [float(j) for j in str(data[i].tstarts).split(',')],
+                           'stop_times': [float(j) for j in str(data[i].tstops).split(',')],
+                           'counts': [float(j) for j in str(data[i].counts).split(',')],
+                           'probs': [float(j) for j in str(data[i].probabilities).split(',')]})
 
     return events
 

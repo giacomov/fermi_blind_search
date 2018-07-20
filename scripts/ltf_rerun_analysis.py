@@ -74,7 +74,7 @@ def get_data(data_path, met_start, met_stop, config):
     # get the path to execute mdcget.py
     mdcget_path = which("mdcget.py")
 
-    mdcget_cmd_line = ('%s --met_start %s --met_stop %s --outroot %s' % (mdcget_path, met_start - 3000, met_stop + 3000,
+    mdcget_cmd_line = ('%s --met_start %s --met_stop %s --outroot %s' % (mdcget_path, met_start, met_stop,
                                                                          data_path + "/data"))
 
     print(mdcget_cmd_line)
