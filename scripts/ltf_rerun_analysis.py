@@ -11,13 +11,6 @@ from fermi_blind_search.configuration import get_config
 from fermi_blind_search.which import which
 from fermi_blind_search.database import Database
 
-# What needs to happen in this script
-# 1. call mdcget on the time interval it gets
-# 2. check the counts of the returned data with the counts from the db
-# 3. if the counts don't line up, rerun the analysis, else terminate
-#   3a. call ltf_search_for_transient with a manual entry to the fit finals
-# 4. analyze results and send email
-
 
 def make_dir_if_not_exist(path):
 
@@ -29,6 +22,8 @@ def make_dir_if_not_exist(path):
         except:
             print("Could not make the directory %s" % path)
             raise
+        else:
+            print("successfully created dir %s" % path)
 
 
 def check_new_data(met_start, met_stop, counts):
@@ -123,7 +118,7 @@ def process_results(analysis_path, config_path):
 
     # format the command
     # TODO: When ready to send email, add --email
-    send_results_cmd_line = ("%s --results %s --config %s --check_db" % (send_results_email_path,
+    send_results_cmd_line = ("%s --results %s --config %s --email --check_db" % (send_results_email_path,
                                                                                  analysis_path + "/out.txt",
                                                                                  config_path))
     print(send_results_cmd_line)
@@ -195,10 +190,3 @@ if __name__ == "__main__":
     except:
         print("Could not remove data directory %s " % data_path)
         raise
-
-
-
-
-
-
-

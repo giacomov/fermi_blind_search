@@ -163,6 +163,8 @@ if __name__ == "__main__":
                         type=get_config, required=True)
     parser.add_argument('--check_db', help='If active check each block against the database of found transients',
                         action="store_true")
+    parser.add_argument('--write_path', help='Path to write results, if they are not emailed', type=str, default='',
+                        required=False)
 
     args = parser.parse_args()
 
@@ -243,6 +245,7 @@ if __name__ == "__main__":
             # the ra and dec do not change for each block
             ra = events[i]['ra']
             dec = events[i]['dec']
+            base_path = configuration.get("Real time", "base_path")
 
             for j in range(len(blocks_to_email[i])):
                 if args.check_db and already_in_db(blocks_to_email[i][j], ra, dec, configuration):
@@ -255,4 +258,4 @@ if __name__ == "__main__":
                     email_body = format_email(blocks_to_email[i][j], ra, dec)
 
                     # write the file using the filename format <name_of_transient>_block<#>
-                    write_to_file(email_body, events[i]['name'] + '_block' + str(j))
+                    write_to_file(email_body, args.write_path + "/" + events[i]['name'] + "_block" + str(j))

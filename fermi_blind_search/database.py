@@ -78,6 +78,8 @@ class Database:
                                                        "database is missing. Parameters are met_start, duration, " \
                                                        "counts, outfile, and logfile"
 
+        assert isinstance(analysis_vals["counts"], int), "Counts is not an integer"
+
         try:
 
             # set the values of the analysis to be added to the table
@@ -92,7 +94,10 @@ class Database:
             # open a session, add the analysis to the table, close the session
             session = Session()
             session.add(new_analysis)
-            session.commit()
+            try:
+                session.commit()
+            except:
+                raise
 
     def update_analysis_counts(self, met_start, duration, new_counts):
 

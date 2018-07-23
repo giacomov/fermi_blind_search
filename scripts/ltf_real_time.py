@@ -28,6 +28,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', help='Path to config file', type=get_config, required=True)
+    parser.add_argument('--test_time', help='For testing purposes. Sets the most_recent_event_time instead of selecting'
+                                            'the time of the most recent recorded event', type=int, required=False)
 
     args = parser.parse_args()
 
@@ -40,10 +42,14 @@ if __name__ == "__main__":
     # start a connection with the database storing analysis and transient candidates
     real_time_db = Database(configuration)
 
-    # get the time of the most recent event
-    event_db = DB.DB()
-    c = event_db.query(''' select max(MET_stop) from FT1''')
-    most_recent_event_time = c.fetchall()[0][0]
+    if args.test_time is None:
+        # get the time of the most recent event
+        event_db = DB.DB()
+        c = event_db.query(''' select max(MET_stop) from FT1''')
+        most_recent_event_time = c.fetchall()[0][0]
+    else:
+        # we want to run the script as if this is the most recent event time
+        most_recent_event_time = args.test_time
 
     # TODO: remove this
     # most_recent_event_time = 410227203.000
