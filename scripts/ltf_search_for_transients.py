@@ -79,8 +79,8 @@ if __name__ == "__main__":
 
         with fits.open(str(ft2_name)) as ft2:
 
-            scdata_start = ft2["SC_DATA"].field("START").min()
-            scdata_end = ft2["SC_DATA"].field("STOP").max()
+            scdata_start = ft2["SC_DATA"].data.field("START").min()
+            scdata_end = ft2["SC_DATA"].data.field("STOP").max()
 
         good_start = max(evt_start, scdata_start)
         good_stop = min(evt_end, scdata_end)

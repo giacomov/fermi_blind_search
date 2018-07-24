@@ -15,8 +15,8 @@ def rerun_analysis(rerun_analysis_path, met_start, duration, counts, outfile, lo
     print("Running an analysis")
 
     # format the command we will execute
-    rerun_analysis_cmd_line = ("%s --met_start %s --duration %s --counts %s --outfile %s --logfile %s --config %s" %
-                               (rerun_analysis_path, met_start, duration, counts, outfile, logfile, config))
+    rerun_analysis_cmd_line = ("qsub -j oe -o %s -F ' --met_start %s --duration %s --counts %s --outfile %s --logfile %s --config %s' %s" %
+                               (logfile, met_start, duration, counts, outfile, logfile, config, rerun_analysis_path))
 
     print(rerun_analysis_cmd_line)
 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', help='Path to config file', type=get_config, required=True)
     parser.add_argument('--test_time', help='For testing purposes. Sets the most_recent_event_time instead of selecting'
-                                            'the time of the most recent recorded event', type=int, required=False)
+                                            'the time of the most recent recorded event', type=float, required=False)
 
     args = parser.parse_args()
 
