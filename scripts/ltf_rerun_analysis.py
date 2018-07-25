@@ -3,6 +3,7 @@
 #PBS -l walltime=04:00:00
 #PBS -l nodes=1:ppn=10
 #PBS -l vmem=30gb
+#PBS -V
 
 import argparse
 import os

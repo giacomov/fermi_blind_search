@@ -5,6 +5,7 @@ import numpy as np
 
 from fermi_blind_search.configuration import get_config
 from fermi_blind_search.database import Database
+from email.mime.text import MIMEText
 
 
 def read_results(filename):
@@ -187,15 +188,9 @@ if __name__ == "__main__":
 
     if args.email:
 
-        # # open the smtp email server and login
-        # s = smtplib.SMTP(host=configuration.get("Results email", "host"),
-        #                   port=int(configuration.get("Results email", "port")))
-        # s.starttls()
-        # s.login(configuration.get("Results email", "username"), configuration.get("Results email", "pword"))
-
+        # open the smtp email server
         server = smtplib.SMTP(configuration.get("Results email", "host"),
                               port=int(configuration.get("Results email", "port")))
-
         try:
             for i in range(len(events)):
 
@@ -213,18 +208,17 @@ if __name__ == "__main__":
                         # format the body of the email
                         email_body = format_email(blocks_to_email[i][j], ra, dec)
 
+                        # create a MIME object so that the email send correctly
+                        msg = MIMEText(email_body)
+                        msg['From'] = configuration.get("Results email", "username")
+                        msg['To'] = configuration.get("Results email", "recipient")
+                        msg['Subject'] = configuration.get("Results email", "subject")
+
+                        # send the email
                         server.sendmail(configuration.get("Results email", "username"),
                                         configuration.get("Results email", "recipient"),
-                                        email_body)
-
-                    # send the email
-                    # msg = MIMEText(email_body)
-                    # msg['From'] = configuration.get("Results email", "username")
-                    # msg['To'] = configuration.get("Results email", "recipient")
-                    # msg['Subject'] = configuration.get("Results email", "subject")
-                    # s.sendmail(configuration.get("Results email", "username"),
-                    #           [configuration.get("Results email", "recipient")], msg.as_string())
-                    # del msg
+                                        msg.as_string())
+                        del msg
         except:
 
             raise

@@ -16,7 +16,7 @@ def test_call_script():
 def test_call_wi_a_call():
     rerun_analysis_path = which("ltf_rerun_analysis.py")
     met_start = 410227203.000 - 86400
-    duration = 86400
+    duration = 86400.0
     counts = 0
     outfile = "out.txt"
     logfile = "log.txt"
@@ -43,14 +43,9 @@ def test_most_recent_not_run_before():
     db.create_tables()
 
     cmd_line = ("%s --config %s --test_time %s" % (real_time_path, config_path, most_recent_event))
-    # cmd_line = ("ltf_real_time.py --config %s " % (config_path))
     print(cmd_line)
     subprocess.check_call(cmd_line, shell=True)
-    # p = subprocess.Popen(cmd_line, stdout=subprocess.PIPE)
-    # p = subprocess.Popen(cmd_line, stdout=subprocess.PIPE)
-    # stout, _ = p.communicate()
-    # print(stout)
-    print("done yet?")
+    # read in results file and check that the second line matches what it should be
     db.delete_analysis_table()
     db.delete_results_table()
     assert 1==1
@@ -69,3 +64,96 @@ def test_most_recent_not_run_before():
     #
     # print(len(result_files))
     # assert len(result_files) == 4
+
+# def test_most_recent_has_been_run_should_rerun():
+#     real_time_path = which("ltf_real_time.py")
+#     print(real_time_path)
+#     most_recent_event = 410227203.000
+#     config_path = "/home/suli_students/suli_jamie/fermi_blind_search/test/config_test.txt"
+#     configuration = get_config(config_path)
+#
+#     db = Database(configuration)
+#     db.create_tables()
+#
+#     analysis_to_add = {"met_start": 410184003.0, "duration": 43200.0, "counts": 30, "outfile": "out.txt",
+#                        "logfile": "log.txt"}
+#     db.add_analysis(analysis_to_add)
+#
+#     cmd_line = ("%s --config %s --test_time %s" % (real_time_path, config_path, most_recent_event))
+#
+#     print(cmd_line)
+#     subprocess.check_call(cmd_line, shell=True)
+#     db.delete_analysis_table()
+#     db.delete_results_table()
+#
+# def test_most_recent_has_been_run_should_not_rerun():
+#     real_time_path = which("ltf_real_time.py")
+#     print(real_time_path)
+#     most_recent_event = 410227203.000
+#     config_path = "/home/suli_students/suli_jamie/fermi_blind_search/test/config_test.txt"
+#     configuration = get_config(config_path)
+#
+#     db = Database(configuration)
+#     db.create_tables()
+#
+#     analysis_to_add = {"met_start": 410184003.0, "duration": 43200.0, "counts": 3639487, "outfile": "out.txt",
+#                        "logfile": "log.txt"}
+#     db.add_analysis(analysis_to_add)
+#
+#     cmd_line = ("%s --config %s --test_time %s" % (real_time_path, config_path, most_recent_event))
+#
+#     print(cmd_line)
+#     subprocess.check_call(cmd_line, shell=True)
+#     db.delete_analysis_table()
+#     db.delete_results_table()
+#
+# def test_rerun_past_analyses():
+#     real_time_path = which("ltf_real_time.py")
+#     print(real_time_path)
+#     most_recent_event = 410227203.000
+#     config_path = "/home/suli_students/suli_jamie/fermi_blind_search/test/config_test.txt"
+#     configuration = get_config(config_path)
+#
+#     db = Database(configuration)
+#     db.create_tables()
+#
+#     # analyses to rerun
+#
+#     # end time of analysis falls in analysis interval
+#     analysis_to_add = {"met_start": 410097703.0, "duration": 43200.0, "counts": 25, "outfile": "out.txt",
+#                        "logfile": "log.txt"}
+#     db.add_analysis(analysis_to_add)
+#
+#     # start and end times of analysis fall in analysis interval
+#     analysis_to_add = {"met_start": 410141803.0, "duration": 40200.0, "counts": 25, "outfile": "out.txt",
+#                        "logfile": "log.txt"}
+#     db.add_analysis(analysis_to_add)
+#
+#     # start time of analysis falls in analysis interval
+#     analysis_to_add = {"met_start": 410183003.0, "duration": 40000.0, "counts": 25, "outfile": "out.txt",
+#                        "logfile": "log.txt"}
+#     db.add_analysis(analysis_to_add)
+#
+#     # analyses not to rerun TODO: fill out with correct count numbers
+#
+#     # # end time of analysis falls in analysis interval
+#     # analysis_to_add = {"met_start": 410139803.0, "duration": 40000.0, "counts": 25, "outfile": "out.txt",
+#     #                    "logfile": "log.txt"}
+#     # db.add_analysis(analysis_to_add)
+#     #
+#     # # start and end times of analysis fall in analysis interval
+#     # analysis_to_add = {"met_start": 410141803.0, "duration": 40000.0, "counts": 25, "outfile": "out.txt",
+#     #                    "logfile": "log.txt"}
+#     # db.add_analysis(analysis_to_add)
+#     #
+#     # # start time of analysis falls in analysis interval
+#     # analysis_to_add = {"met_start": 410183003.0, "duration": 40200.0, "counts": 25, "outfile": "out.txt",
+#     #                    "logfile": "log.txt"}
+#     # db.add_analysis(analysis_to_add)
+#
+#     cmd_line = ("%s --config %s --test_time %s" % (real_time_path, config_path, most_recent_event))
+#
+#     print(cmd_line)
+#     subprocess.check_call(cmd_line, shell=True)
+#     db.delete_analysis_table()
+#     db.delete_results_table()
