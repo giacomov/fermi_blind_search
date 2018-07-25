@@ -115,8 +115,8 @@ if __name__ == "__main__":
 
         # Now remove the directory
         try:
-
             shutil.rmtree(workdir)
+
 
         except:
 

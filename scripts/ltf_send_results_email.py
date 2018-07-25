@@ -4,22 +4,38 @@ import smtplib
 import numpy as np
 
 from fermi_blind_search.configuration import get_config
+from fermi_blind_search.database import Database
+from email.mime.text import MIMEText
 
 
 def read_results(filename):
 
+    print("reading results from file")
     data = np.recfromtxt(filename, delimiter=' ', names=True, encoding=None)
 
     events = []
-    for i in range(len(data)):
 
-        # we convert start_times stop_time, counts, and probs to float values because they will be used
-        # for comparisons when determining which blocks to include in the email
-        events.append({'name': data[i].name, 'ra': data[i].ra, 'dec': data[i].dec,
-                       'start_times': [float(j) for j in data[i].tstarts.split(',')],
-                       'stop_times': [float(j) for j in data[i].tstops.split(',')],
-                       'counts': [float(j) for j in data[i].counts.split(',')],
-                       'probs': [float(j) for j in data[i].probabilities.split(',')]})
+    if data.size == 1:
+        print("size 1")
+        # when there is only one result, we have to deal with the recarray differently
+        # because the types of the values is different
+        events.append({'name': str(data.name.reshape(1,)[0]), 'ra': float(data.ra.reshape(1,)[0]),
+                       'dec': float(data.dec.reshape(1,)[0]),
+                       'start_times': [float(j) for j in str(data.tstarts.reshape(1,)[0]).split(',')],
+                       'stop_times': [float(j) for j in str(data.tstops.reshape(1,)[0]).split(',')],
+                       'counts': [float(j) for j in str(data.counts.reshape(1,)[0]).split(',')],
+                       'probs': [float(j) for j in str(data.probabilities.reshape(1,)[0]).split(',')]})
+    else:
+        print("other size")
+        for i in range(len(data)):
+            # we convert start_times stop_time, counts, and probs to float values because they will be used
+            # for comparisons when determining which blocks to include in the email
+            events.append({'name': str(data[i].name), 'ra': float(data[i].ra), 'dec': float(data[i].dec),
+                           'start_times': [float(j) for j in str(data[i].tstarts).split(',')],
+                           'stop_times': [float(j) for j in str(data[i].tstops).split(',')],
+                           'counts': [float(j) for j in str(data[i].counts).split(',')],
+                           'probs': [float(j) for j in str(data[i].probabilities).split(',')]})
+
     return events
 
 
@@ -35,7 +51,7 @@ def get_blocks(event_dict):
     # store the return values here
     blocks_to_email = []
 
-    assert num_blocks > 1, "There is zero or one blocks in the input file. This should never happen."
+    # assert num_blocks > 1, "There is zero or one blocks in the input file. This should never happen."
 
     if num_blocks <= 3:
 
@@ -100,21 +116,41 @@ def format_email(block_dict, ra, dec):
     interval = block_dict['stop_time'] - block_dict['start_time']
 
     string = ('TITLE: GCN/GBM NOTICE \nNOTICE_TYPE: User-supplied job \nGRB_RA: %s \nGRB_DEC: %s \nGRB_MET: %s \nANALYSIS_INTERVAL: %s\n'
-              % (ra, dec, str(block_dict['start_time']), str(interval)))
+              % (str(ra), str(dec), str(block_dict['start_time']), str(interval)))
 
     return string
 
 
 def write_to_file(email_string, name):
 
-    f = open(name, 'w+')
-    f.write(email_string)
-    f.close()
+    with open(name, 'w+') as f:
+        f.write(email_string)
 
 
-def already_in_db(block_dict, ra, dec):
+def already_in_db(block_dict, ra, dec, config):
     #returns true if the block is in the db
-    return False
+
+    # get the interval of the transient
+    interval = block_dict['stop_time'] - block_dict['start_time']
+
+    # set up the dictionary to check against the db
+    new_block_dict = {'ra': float(ra), 'dec': float(dec), 'met_start': block_dict['start_time'], 'interval': interval}
+
+    print(new_block_dict)
+    # establish db connection
+    db = Database(config)
+
+    # get any transients that match ours
+    matches = db.get_results(new_block_dict)
+
+    print(matches)
+    print(len(matches) > 0)
+
+    if len(matches) == 0:
+        # add the candidate to the database
+        db.add_candidate(new_block_dict)
+
+    return len(matches) > 0
 
 
 if __name__ == "__main__":
@@ -128,11 +164,13 @@ if __name__ == "__main__":
                         type=get_config, required=True)
     parser.add_argument('--check_db', help='If active check each block against the database of found transients',
                         action="store_true")
+    parser.add_argument('--write_path', help='Path to write results, if they are not emailed', type=str, default='',
+                        required=False)
 
     args = parser.parse_args()
 
     configuration = args.config
-
+    print(args.check_db)
     # read each detected transient into a dictionary and store them as a list
     events = read_results(args.results)
 
@@ -150,15 +188,9 @@ if __name__ == "__main__":
 
     if args.email:
 
-        # # open the smtp email server and login
-        # s = smtplib.SMTP(host=configuration.get("Results email", "host"),
-        #                   port=int(configuration.get("Results email", "port")))
-        # s.starttls()
-        # s.login(configuration.get("Results email", "username"), configuration.get("Results email", "pword"))
-
+        # open the smtp email server
         server = smtplib.SMTP(configuration.get("Results email", "host"),
                               port=int(configuration.get("Results email", "port")))
-
         try:
             for i in range(len(events)):
 
@@ -167,22 +199,26 @@ if __name__ == "__main__":
                 dec = events[i]['dec']
 
                 for j in range(len(blocks_to_email[i])):
-                    if not already_in_db(blocks_to_email[i][j], ra, dec):
+                    if args.check_db and already_in_db(blocks_to_email[i][j], ra, dec, configuration):
+                        # the transient is already in the database, don't send another email
+                        print("transient candidate already found, not sending email")
+                    else:
+                        print('back in email part')
+                        print(blocks_to_email[i][j])
                         # format the body of the email
                         email_body = format_email(blocks_to_email[i][j], ra, dec)
 
+                        # create a MIME object so that the email send correctly
+                        msg = MIMEText(email_body)
+                        msg['From'] = configuration.get("Results email", "username")
+                        msg['To'] = configuration.get("Results email", "recipient")
+                        msg['Subject'] = configuration.get("Results email", "subject")
+
+                        # send the email
                         server.sendmail(configuration.get("Results email", "username"),
                                         configuration.get("Results email", "recipient"),
-                                        email_body)
-
-                    # send the email
-                    # msg = MIMEText(email_body)
-                    # msg['From'] = configuration.get("Results email", "username")
-                    # msg['To'] = configuration.get("Results email", "recipient")
-                    # msg['Subject'] = configuration.get("Results email", "subject")
-                    # s.sendmail(configuration.get("Results email", "username"),
-                    #           [configuration.get("Results email", "recipient")], msg.as_string())
-                    # del msg
+                                        msg.as_string())
+                        del msg
         except:
 
             raise
@@ -203,11 +239,17 @@ if __name__ == "__main__":
             # the ra and dec do not change for each block
             ra = events[i]['ra']
             dec = events[i]['dec']
+            base_path = configuration.get("Real time", "base_path")
 
             for j in range(len(blocks_to_email[i])):
+                if args.check_db and already_in_db(blocks_to_email[i][j], ra, dec, configuration):
+                    # the transient is already in the database, don't send another email
+                    print("transient candidate already found, not writing to file")
+                else:
+                    print('back in email part')
+                    print(blocks_to_email[i][j])
+                    # format the body of the "email"
+                    email_body = format_email(blocks_to_email[i][j], ra, dec)
 
-                # format the body of the "email"
-                email_body = format_email(blocks_to_email[i][j], ra, dec)
-
-                # write the file using the filename format <name_of_transient>_block<#>
-                write_to_file(email_body, events[i]['name'] + '_block' + str(j))
+                    # write the file using the filename format <name_of_transient>_block<#>
+                    write_to_file(email_body, args.write_path + "/" + events[i]['name'] + "_block" + str(j))

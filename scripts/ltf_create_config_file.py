@@ -34,6 +34,19 @@ Min_counts = 3
 # be checked and marked as the same transient if they overlap in time
 cluster_distance = 15.0
 
+[Real time]
+# describes the type of database and the path to where it is stored. 
+# See SQLAlchemy for more information about formatting
+db_engine_url = sqlite:///test_db1.db
+
+# real time will rerun all analyses that use data from start_interval to end_interval hours ago
+# and an analysis on end_interval to the current time
+start_interval = 24
+end_interval = 12
+
+# path to where to store results, log files, and tmp files
+base_path = ./real_time_work
+
 [Results email]
 # Host server and port number for sending emails
 host = ''
@@ -41,7 +54,6 @@ port = 0
 
 # Login credentials for sending emails
 username = ''
-pword = ''
 
 # Address to send the emails to and email subject heading
 recipient = ''

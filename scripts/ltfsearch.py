@@ -3,6 +3,7 @@ import argparse
 import datetime
 import time
 
+from fermi_blind_search.date2met_converter import convert_date
 from fermi_blind_search.data_files import get_data_file_path
 from fermi_blind_search.configuration import get_config
 from GtBurst import IRFS
@@ -103,18 +104,10 @@ if __name__ == '__main__':
 
         # Download files
 
-        # Import this here otherwise the -h flag will be intercepted by pyROOT (!)
-        from GtBurst.dataHandling import date2met
+        met_start = convert_date(args.date)
+        met_stop = met_start + args.duration
 
-        # Check that the date is a valid date
-        try:
-            validated = dateutil.parser.parse(args.date).isoformat().replace("T", " ")
-        except:
-            raise ltfException("The provided date is not a valid ISO date")
-        pass
-
-        met_start = date2met(validated)
-        logger.info("Running search starting at %s (MET: %s) for %s seconds" % (validated, met_start, args.duration))
+        logger.info("Running search starting at %s (MET: %s) for %s seconds" % (args.date, met_start, args.duration))
 
         # Get the data
         logger.info("######################")
@@ -128,7 +121,7 @@ if __name__ == '__main__':
 
         mdargs = Container()
         mdargs.met_start = met_start - 10000.0
-        mdargs.met_stop = met_start + args.duration + 10000.0
+        mdargs.met_stop = met_stop + 10000.0
         mdargs.type = None
         mdargs.outroot = 'data'
         mdargs.gtselect_pars = None
@@ -141,12 +134,19 @@ if __name__ == '__main__':
 
         # Using provided data
 
-        with pyfits.open(args.ft1) as f:
+        # with pyfits.open(args.ft1) as f:
+        #
+        #     met_start = f['EVENTS'].header.get("TSTART")
+        #     met_stop = f['EVENTS'].header.get("TSTOP")
 
-            met_start = f['EVENTS'].header.get("TSTART")
-            met_stop = f['EVENTS'].header.get("TSTOP")
+        try:
+            met_start = float(args.date)
 
-        args.duration = met_stop - met_start
+        except:
+
+            met_start = convert_date(args.date)
+
+        met_stop = met_start + args.duration
 
         ft1file = os.path.abspath(os.path.expandvars(os.path.expanduser(args.ft1)))
         ft2file = os.path.abspath(os.path.expandvars(os.path.expanduser(args.ft2)))
@@ -166,8 +166,8 @@ if __name__ == '__main__':
                      'ra': 0.0,
                      'dec': 0.0,
                      'rad': 180.0,
-                     'tmin': 0.0,
-                     'tmax': 0.0,
+                     'tmin': met_start,
+                     'tmax': met_stop,
                      'emin': 0.0,
                      'emax': 0.0,
                      'zmin': 0.0,
@@ -214,6 +214,7 @@ if __name__ == '__main__':
                                                 configuration.get('Analysis', 'theta_cut'),
                                                 configuration.get('Analysis', 'emin'),
                                                 configuration.get('Analysis', 'emax'))
+
     timeInterval = ltf.TimeInterval(met_start,
                                     met_start + args.duration,
                                     cleaned_ft1,

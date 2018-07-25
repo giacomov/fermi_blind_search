@@ -250,7 +250,8 @@ class ROIBackgroundEstimatorDataMaker(object):
             stop = ft2data.field("STOP")
 
             # Check that Ft2 covers ft1
-            if (start[0] >= self.ft1.tstart):
+
+            if (start[0] > self.ft1.tstart):
                 raise RuntimeError("Provided FT2 file does not cover FT1 interval")
 
             # Throw away all part of the Ft2 which are useless
@@ -545,6 +546,7 @@ class ROIBackgroundEstimator(object):
             stop = ft2data.field("STOP")
 
             # Check that Ft2 covers ft1
+
             if (start[0] > self.dataFt1.tstart):
                 raise RuntimeError("Provided FT2 file does not cover FT1 interval")
 
