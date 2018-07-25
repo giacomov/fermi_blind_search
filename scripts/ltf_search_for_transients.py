@@ -4,7 +4,7 @@
     Actual data is specified by a date, simulated is given by a specific ft1 and ft2 file"""
 
 import argparse
-
+import math
 import os
 from astropy.io import fits
 
@@ -82,12 +82,13 @@ if __name__ == "__main__":
             scdata_start = ft2["SC_DATA"].data.field("START").min()
             scdata_end = ft2["SC_DATA"].data.field("STOP").max()
 
-        good_start = max(evt_start, scdata_start)
-        good_stop = min(evt_end, scdata_end)
+        good_start = float(math.ceil(max(evt_start, scdata_start)))
+        good_stop = float(math.floor(min(evt_end, scdata_end)))
 
         duration = good_stop - good_start
         date = good_start
         extra_args = ['--ft1', ft1_name, '--ft2', ft2_name]
+
         # bayesian blocks
 
         #cmd_line = 'ltfsearch.py --date %s --duration %s --irfs %s --probability %s --loglevel %s --logfile %s ' \

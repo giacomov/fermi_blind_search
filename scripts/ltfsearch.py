@@ -215,6 +215,7 @@ if __name__ == '__main__':
                                                 configuration.get('Analysis', 'theta_cut'),
                                                 configuration.get('Analysis', 'emin'),
                                                 configuration.get('Analysis', 'emax'))
+
     timeInterval = ltf.TimeInterval(met_start,
                                     met_start + args.duration,
                                     cleaned_ft1,

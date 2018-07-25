@@ -94,24 +94,40 @@ def get_data(data_path, met_start, met_stop, config):
     return
 
 
-def run_ltf_search(analysis_path):
+def run_ltf_search(analysis_path, data_path):
+
+    # make a work directory
+    workdir = os.path.join(analysis_path, "work")
+    make_dir_if_not_exist(workdir)
+
+    # store current directory
+    cwd = os.getcwd()
+
+    # move there
+    os.chdir(workdir)
 
     # get the path to execute ltf_search_for_transients.py
     ltf_search_for_transients_path = which("ltf_search_for_transients.py")
 
     fit_file_path = ",".join([data_path + "/data_ft1.fit", data_path + "/data_ft2.fit"])
     print(fit_file_path)
-    ltf_search_cmd_line = ('%s --inp_fts %s --config %s --outfile %s --logfile %s' %
+    ltf_search_cmd_line = ('%s --inp_fts %s --config %s --outfile %s --logfile %s --workdir %s' %
                            (ltf_search_for_transients_path,
                             fit_file_path,
                             configuration.config_file,
                             analysis_path + "/out.txt",
-                            analysis_path + "/log.txt"))
+                            analysis_path + "/log.txt", workdir))
     print(ltf_search_cmd_line)
 
     # call ltf_seach_for_transients
     subprocess.check_call(ltf_search_cmd_line, shell=True)
     print("ltf_search complete")
+
+    # move back to original directory
+    os.chdir(cwd)
+
+    #remove working directory
+    shutil.rmtree(workdir)
 
     return
 
@@ -184,7 +200,7 @@ if __name__ == "__main__":
         print("finished getting data, about to start search")
 
         # run ltf_search_for_transients
-        run_ltf_search(analysis_path)
+        run_ltf_search(analysis_path, data_path)
 
         # check results against candidates we have already found and send emails
         process_results(analysis_path, configuration.config_file)

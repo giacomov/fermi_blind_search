@@ -51,7 +51,7 @@ def get_blocks(event_dict):
     # store the return values here
     blocks_to_email = []
 
-    assert num_blocks > 1, "There is zero or one blocks in the input file. This should never happen."
+    # assert num_blocks > 1, "There is zero or one blocks in the input file. This should never happen."
 
     if num_blocks <= 3:
 
