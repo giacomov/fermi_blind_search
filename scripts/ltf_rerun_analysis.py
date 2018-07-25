@@ -119,15 +119,22 @@ def run_ltf_search(analysis_path, data_path):
                             analysis_path + "/log.txt", workdir))
     print(ltf_search_cmd_line)
 
-    # call ltf_seach_for_transients
-    subprocess.check_call(ltf_search_cmd_line, shell=True)
-    print("ltf_search complete")
+    try:
+        # call ltf_seach_for_transients
+        subprocess.check_call(ltf_search_cmd_line, shell=True)
 
-    # move back to original directory
-    os.chdir(cwd)
+    except:
+        raise
 
-    #remove working directory
-    shutil.rmtree(workdir)
+    finally:
+        # move back to original directory
+        os.chdir(cwd)
+
+        try:
+            #remove working directory
+            shutil.rmtree(workdir)
+        except:
+            print("Could not remove directory: %s" % workdir)
 
     return
 
