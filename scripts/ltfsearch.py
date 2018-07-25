@@ -140,7 +140,6 @@ if __name__ == '__main__':
         #     met_stop = f['EVENTS'].header.get("TSTOP")
 
         try:
-
             met_start = float(args.date)
 
         except:

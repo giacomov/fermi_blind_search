@@ -82,6 +82,8 @@ if __name__ == "__main__":
             scdata_start = ft2["SC_DATA"].data.field("START").min()
             scdata_end = ft2["SC_DATA"].data.field("STOP").max()
 
+        # get the floor and ceiling of these values so that we have control over how they are truncated
+        # (passing the date as a string to ltfsearch truncates the value, which would cause an error later)
         good_start = float(math.ceil(max(evt_start, scdata_start)))
         good_stop = float(math.floor(min(evt_end, scdata_end)))
 
