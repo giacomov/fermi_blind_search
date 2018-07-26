@@ -59,6 +59,13 @@ username = ''
 recipient = ''
 subject = ''
 
+[Remote access]
+# host with access to data accessed by mdcget.py
+ssh_host = galprop-cluster
+
+# path to setup file to allow mdcget.py to run 
+source_path = ~/suli_jamie/jamie_setup.sh
+
 [Hardware]
 ncpus = 10
 '''

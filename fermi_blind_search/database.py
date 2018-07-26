@@ -124,16 +124,20 @@ class Database:
         # TODO: do we want to add a check that the candidate doesn't already exist?
 
         assert (candidate_vals['ra'] is not None and candidate_vals['dec'] is not None and
-                candidate_vals['met_start'] is not None and candidate_vals['interval'] is not None), \
+                candidate_vals['met_start'] is not None and candidate_vals['interval'] is not None and
+                candidate_vals['email'] is not None), \
             "One of the parameters to enter the candidate into the database is missing. Parameters are ra, dec, " \
-            "met_start, and interval"
+            "met_start, interval, email"
 
         try:
             # set the values of the result to be added to the table
             new_candidate = Results(ra=candidate_vals['ra'], dec=candidate_vals['dec'],
-                                    met_start=candidate_vals['met_start'], interval=candidate_vals['interval'])
+                                    met_start=candidate_vals['met_start'], interval=candidate_vals['interval'],
+                                    email=candidate_vals['email'])
         except KeyError:
             print('ERROR: The result you want to add does not have the proper fields')
+            raise
+        except:
             raise
         # TODO: need to add a catch all except here?
         else:
@@ -169,6 +173,22 @@ class Database:
                                                   candidate_vals['interval'] - 10 <= Results.interval,
                                                   Results.interval <= candidate_vals['interval'] + 10)).all()
 
+    def get_results_to_email(self):
+        session = Session()
+
+        return session.query(Results).filter(Results.email == 0).all()
+
+    def update_result_email(self, candidate, email_val=False):
+
+        # open a session
+        session = Session()
+
+        # update the value of the candidate
+        candidate.email = email_val
+
+        # commit the change
+        session.commit()
+
 
 class Analysis(Base):
 
@@ -199,11 +219,14 @@ class Results(Base):
     dec = Column(Float)
     met_start = Column(Float, Sequence('results_met_start_seq'), primary_key=True)
     interval = Column(Float, Sequence('results_interval_seq'), primary_key=True)
+    email = Column(Boolean)
 
     def __repr__(self):
 
         # formatting string so that printing rows from the table is more readable
-        return "<Results(ra= %s, dec= %s, met_start= %s, interval= %s)>" % (self.ra, self.dec, self.met_start, self.interval)
+        return "<Results(ra= %s, dec= %s, met_start= %s, interval= %s, email=%s)>" % (self.ra, self.dec,
+                                                                                      self.met_start,
+                                                                                      self.interval, self.email)
 
 
 if __name__ == "__main__":
@@ -218,16 +241,10 @@ if __name__ == "__main__":
     configuration = args.config
 
     db = Database(configuration)
-    # db.create_tables()
-    #
-    # analysis_to_add = {'met_start': 553492250.09, 'duration': 3000.2, 'counts': 400, 'outfile': 'woohoo/out.txt',
-    #                    'logfile': 'woohoo/log.txt'}
-    # another = {'met_start': 410140803.000, 'duration': 21600, 'counts': 400, 'outfile': 'out.txt',
-    #                    'logfile': 'log.txt'}
-    #
-    # db.add_analysis(another)
-    # db.add_analysis(another)
+    db.create_tables()
+    result_to_add3 = {"met_start": 141.1, "interval": 191.2, "ra": 3.0, "dec": 10.2, "email": False}
+    db.add_candidate(result_to_add3)
 
-    result_to_add = {'met_start': 410157950.022, 'dec': -34.0, 'ra': 20.0, 'interval': 225.83599996566772}
-    db.add_candidate(result_to_add)
-
+    results = db.get_results_to_email()
+    for row in results:
+        print(row)
