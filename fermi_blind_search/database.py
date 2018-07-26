@@ -242,9 +242,3 @@ if __name__ == "__main__":
 
     db = Database(configuration)
     db.create_tables()
-    result_to_add3 = {"met_start": 141.1, "interval": 191.2, "ra": 3.0, "dec": 10.2, "email": False}
-    db.add_candidate(result_to_add3)
-
-    results = db.get_results_to_email()
-    for row in results:
-        print(row)
