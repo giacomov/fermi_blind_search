@@ -31,7 +31,7 @@ def make_dir_if_not_exist(path):
             print("successfully created dir %s" % path)
 
 
-def check_new_data(met_start, met_stop, counts):
+def check_new_data(met_start, met_stop, counts, ssh_host, source_path):
 
     # get the path to execute mdcget.py
     # mdcget_path = which("mdcget.py")
@@ -64,7 +64,7 @@ def check_new_data(met_start, met_stop, counts):
 
     try:
         out = subprocess.check_output(
-            "ssh galprop-cluster 'source ~/suli_jamie/jamie_setup.sh ; mdcget.py --met_start %s --met_stop %s --count'" % (met_start, met_stop), shell=True)
+            "ssh %s 'source %s ; mdcget.py --met_start %s --met_stop %s --count'" % (ssh_host, source_path, met_start, met_stop), shell=True)
     except:
         raise IOError("Could not get number of counts between %s and %s" % (met_start, met_stop))
 
@@ -156,13 +156,10 @@ def run_ltf_search(analysis_path, data_path):
 def process_results(analysis_path, config_path):
 
     # get path to ltf_send_results_email
-    send_results_email_path = which("ltf_send_results_email.py")
+    results_path = which("ltf_process_search_results.py")
 
     # format the command
-    # TODO: When ready to send email, add --email
-    send_results_cmd_line = ("%s --results %s --config %s --email --check_db" % (send_results_email_path,
-                                                                                 analysis_path + "/out.txt",
-                                                                                 config_path))
+    send_results_cmd_line = ("%s --results %s --config %s" % (results_path, analysis_path + "/out.txt", config_path))
     print(send_results_cmd_line)
 
     # execute
@@ -213,7 +210,10 @@ if __name__ == "__main__":
     # make a directory to store data from mcdget (if we fetch data)
     make_dir_if_not_exist(data_path)
 
-    if check_new_data(met_start, met_stop, args.counts):
+    ssh_host = configuration.get("Remote access", "ssh_host")
+    source_path = configuration.get("Remote access", "source_path")
+
+    if check_new_data(met_start, met_stop, args.counts, ssh_host, source_path):
         # there is new data! so we rerun the analysis
         print("We need to rerun the analysis, fetching data...")
         # first actually fetch the data we will use as a single file

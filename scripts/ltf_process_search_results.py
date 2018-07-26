@@ -108,25 +108,6 @@ def get_blocks(event_dict):
     return blocks_to_email
 
 
-def format_email(block_dict, ra, dec):
-
-    # using the start and stop times, ra, and dec of the blocks we need to email, format
-    # the body of the email
-
-    interval = block_dict['stop_time'] - block_dict['start_time']
-
-    string = ('TITLE: GCN/GBM NOTICE \nNOTICE_TYPE: User-supplied job \nGRB_RA: %s \nGRB_DEC: %s \nGRB_MET: %s \nANALYSIS_INTERVAL: %s\n'
-              % (str(ra), str(dec), str(block_dict['start_time']), str(interval)))
-
-    return string
-
-
-def write_to_file(email_string, name):
-
-    with open(name, 'w+') as f:
-        f.write(email_string)
-
-
 def already_in_db(block_dict, ra, dec, config):
     #returns true if the block is in the db
 
@@ -134,7 +115,8 @@ def already_in_db(block_dict, ra, dec, config):
     interval = block_dict['stop_time'] - block_dict['start_time']
 
     # set up the dictionary to check against the db
-    new_block_dict = {'ra': float(ra), 'dec': float(dec), 'met_start': block_dict['start_time'], 'interval': interval}
+    new_block_dict = {'ra': float(ra), 'dec': float(dec), 'met_start': block_dict['start_time'], 'interval': interval,
+                      'email': False}
 
     print(new_block_dict)
     # establish db connection
@@ -159,13 +141,8 @@ if __name__ == "__main__":
                                     lft_search results file""")
     parser.add_argument('--results', help='Path to the results file', type=str,
                         required=True)
-    parser.add_argument('--email', help='If active send email', action="store_true")
     parser.add_argument('--config', help='Path to the configuration file',
                         type=get_config, required=True)
-    parser.add_argument('--check_db', help='If active check each block against the database of found transients',
-                        action="store_true")
-    parser.add_argument('--write_path', help='Path to write results, if they are not emailed', type=str, default='',
-                        required=False)
 
     args = parser.parse_args()
 
@@ -186,70 +163,9 @@ if __name__ == "__main__":
     # now blocks_to_email[i] = [block_1, block_2, ...]  where block_<#> is a dictionary
     # of the start and stop times of one of the blocks to be emailed for detected transient i
 
-    if args.email:
+    for i in range(len(events)):
+        ra = events[i]['ra']
+        dec = events[i]['dec']
 
-        # open the smtp email server
-        server = smtplib.SMTP(configuration.get("Results email", "host"),
-                              port=int(configuration.get("Results email", "port")))
-        try:
-            for i in range(len(events)):
-
-                # the ra and dec do not change for each block
-                ra = events[i]['ra']
-                dec = events[i]['dec']
-
-                for j in range(len(blocks_to_email[i])):
-                    if args.check_db and already_in_db(blocks_to_email[i][j], ra, dec, configuration):
-                        # the transient is already in the database, don't send another email
-                        print("transient candidate already found, not sending email")
-                    else:
-                        print('back in email part')
-                        print(blocks_to_email[i][j])
-                        # format the body of the email
-                        email_body = format_email(blocks_to_email[i][j], ra, dec)
-
-                        # create a MIME object so that the email send correctly
-                        msg = MIMEText(email_body)
-                        msg['From'] = configuration.get("Results email", "username")
-                        msg['To'] = configuration.get("Results email", "recipient")
-                        msg['Subject'] = configuration.get("Results email", "subject")
-
-                        # send the email
-                        server.sendmail(configuration.get("Results email", "username"),
-                                        configuration.get("Results email", "recipient"),
-                                        msg.as_string())
-                        del msg
-        except:
-
-            raise
-
-        finally:
-
-            # terminate the email server session
-            server.quit()
-
-    else:
-
-        # we want to write the emails to a .txt file instead of sending them
-
-        for i in range(len(events)):
-
-            # for each detected transient we want to write a file for each block
-
-            # the ra and dec do not change for each block
-            ra = events[i]['ra']
-            dec = events[i]['dec']
-            base_path = configuration.get("Real time", "base_path")
-
-            for j in range(len(blocks_to_email[i])):
-                if args.check_db and already_in_db(blocks_to_email[i][j], ra, dec, configuration):
-                    # the transient is already in the database, don't send another email
-                    print("transient candidate already found, not writing to file")
-                else:
-                    print('back in email part')
-                    print(blocks_to_email[i][j])
-                    # format the body of the "email"
-                    email_body = format_email(blocks_to_email[i][j], ra, dec)
-
-                    # write the file using the filename format <name_of_transient>_block<#>
-                    write_to_file(email_body, args.write_path + "/" + events[i]['name'] + "_block" + str(j))
+        for j in range(len(blocks_to_email[i])):
+            already_in_db(blocks_to_email[i][j], ra, dec, configuration)
