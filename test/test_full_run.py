@@ -146,23 +146,23 @@ def test_rerun_past_analyses():
     # analyses not to rerun TODO: fill out with correct count numbers
 
     # # end time of analysis falls in analysis interval
-    # analysis_to_add = {"met_start": 410139803.0, "duration": 40000.0, "counts": 25, "outfile": "out.txt",
-    #                    "logfile": "log.txt"}
-    # db.add_analysis(analysis_to_add)
-    #
-    # # start and end times of analysis fall in analysis interval
-    # analysis_to_add = {"met_start": 410141803.0, "duration": 40000.0, "counts": 25, "outfile": "out.txt",
-    #                    "logfile": "log.txt"}
-    # db.add_analysis(analysis_to_add)
-    #
-    # # start time of analysis falls in analysis interval
-    # analysis_to_add = {"met_start": 410183003.0, "duration": 40200.0, "counts": 25, "outfile": "out.txt",
-    #                    "logfile": "log.txt"}
-    # db.add_analysis(analysis_to_add)
+    analysis_to_add = {"met_start": 410139803.0, "duration": 40000.0, "counts": 3576544, "outfile": "out.txt",
+                       "logfile": "log.txt"}
+    db.add_analysis(analysis_to_add)
+
+    # start and end times of analysis fall in analysis interval
+    analysis_to_add = {"met_start": 410141803.0, "duration": 40000.0, "counts": 3539609, "outfile": "out.txt",
+                       "logfile": "log.txt"}
+    db.add_analysis(analysis_to_add)
+
+    # start time of analysis falls in analysis interval
+    analysis_to_add = {"met_start": 410183003.0, "duration": 40200.0, "counts": 3204272, "outfile": "out.txt",
+                       "logfile": "log.txt"}
+    db.add_analysis(analysis_to_add)
 
     cmd_line = ("%s --config %s --test_time %s" % (real_time_path, config_path, most_recent_event))
 
     print(cmd_line)
     subprocess.check_call(cmd_line, shell=True)
-    db.delete_analysis_table()
-    db.delete_results_table()
+    # db.delete_analysis_table()
+    # db.delete_results_table()

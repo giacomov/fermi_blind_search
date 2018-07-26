@@ -34,36 +34,47 @@ def make_dir_if_not_exist(path):
 def check_new_data(met_start, met_stop, counts):
 
     # get the path to execute mdcget.py
-    mdcget_path = which("mdcget.py")
+    # mdcget_path = which("mdcget.py")
+    #
+    # # command to get the files that would be used in this analysis
+    # mdcget_cmd_line = ('%s --met_start %s --met_stop %s --type FT1' % (mdcget_path, met_start, met_stop))
+    #
+    # print(mdcget_cmd_line)
+    #
+    # # call mdcget.py, wait for it to complete, and get its output
+    # p = subprocess.Popen(mdcget_cmd_line, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # out, err = p.communicate()
+    #
+    # # split the string of files output on \n
+    # # TODO: add condition to ensure that at least 1 file is returned
+    # ft1_files = out.split("\n")
+    #
+    # new_counts = 0
+    # for i in range(len(ft1_files) - 1):
+    #     # open the fit file
+    #     ft1_data = pyfits.getdata(ft1_files[i], "EVENTS")
+    #
+    #     # get the counts that occured within the time interval of interest
+    #     idx = (ft1_data.field("TIME") >= met_start) & (ft1_data.field("TIME") < met_stop)
+    #
+    #     # add this to the total number of counts
+    #     new_counts += np.sum(idx)
 
-    # command to get the files that would be used in this analysis
-    mdcget_cmd_line = ('%s --met_start %s --met_stop %s --type FT1' % (mdcget_path, met_start, met_stop))
 
-    print(mdcget_cmd_line)
 
-    # call mdcget.py, wait for it to complete, and get its output
-    p = subprocess.Popen(mdcget_cmd_line, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out, err = p.communicate()
+    try:
+        out = subprocess.check_output(
+            "ssh galprop-cluster 'source ~/suli_jamie/jamie_setup.sh ; mdcget.py --met_start %s --met_stop %s --count'" % (met_start, met_stop), shell=True)
+    except:
+        raise IOError("Could not get number of counts between %s and %s" % (met_start, met_stop))
 
-    # split the string of files output on \n
-    # TODO: add condition to ensure that at least 1 file is returned
-    ft1_files = out.split("\n")
+    number_of_counts = int(out.split()[-1])
 
-    new_counts = 0
-    for i in range(len(ft1_files) - 1):
-        # open the fit file
-        ft1_data = pyfits.getdata(ft1_files[i], "EVENTS")
-
-        # get the counts that occured within the time interval of interest
-        idx = (ft1_data.field("TIME") >= met_start) & (ft1_data.field("TIME") < met_stop)
-
-        # add this to the total number of counts
-        new_counts += np.sum(idx)
-
-    print(new_counts)
+    print(number_of_counts)
 
     # return True if there is new data, False if there is not
-    return new_counts > counts
+    return number_of_counts > counts
+
 
 
 def get_data(data_path, met_start, met_stop, config):
@@ -76,6 +87,9 @@ def get_data(data_path, met_start, met_stop, config):
 
     mdcget_cmd_line = ('%s --met_start %s --met_stop %s --outroot %s' % (mdcget_path, met_start, met_stop,
                                                                          data_path + "/data"))
+
+    # mdcget_cmd_line = ("ssh galprop-cluster 'source ~/suli_jamie/jamie_setup.sh ; mdcget.py --met_start %s --met_stop %s --outroot %s'" % (met_start, met_stop,
+    #                                                                      data_path + "/data"))
 
     print(mdcget_cmd_line)
 
