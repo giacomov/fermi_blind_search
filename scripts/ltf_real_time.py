@@ -14,11 +14,16 @@ def rerun_analysis(rerun_analysis_path, met_start, duration, counts, outfile, lo
 
     print("Running an analysis")
 
+    log_path = os.path.abspath(os.path.expandvars(
+        os.path.expanduser(config.get("Real time", "base_path") + "/" + str(met_start) + "_" +
+                           str(duration) + "_farm_log.txt")))
+
     # format the command we will execute
     rerun_analysis_cmd_line = ("qsub -j oe -o %s -F ' --met_start %s --duration %s --counts %s --outfile %s --logfile "
-                               "%s --config %s' %s" % (str(met_start) + "_" + str(duration) + "_farm_log.txt",
-                                                       met_start, duration, counts, outfile, logfile, config,
+                               "%s --config %s' %s" % (log_path, met_start, duration, counts, outfile, logfile, config,
                                                        rerun_analysis_path))
+
+    # if you want to run locally, use this command line
     # rerun_analysis_cmd_line = ("%s --met_start %s --duration %s --counts %s --outfile %s --logfile %s --config %s" %
     #                            (rerun_analysis_path, met_start, duration, counts, outfile, logfile, config))
 

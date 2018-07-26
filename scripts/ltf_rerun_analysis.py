@@ -10,7 +10,6 @@ import os
 import subprocess
 import astropy.io.fits as pyfits
 import shutil
-import numpy as np
 
 from fermi_blind_search.configuration import get_config
 from fermi_blind_search.which import which
@@ -60,8 +59,6 @@ def check_new_data(met_start, met_stop, counts, ssh_host, source_path):
     #     # add this to the total number of counts
     #     new_counts += np.sum(idx)
 
-
-
     try:
         out = subprocess.check_output(
             "ssh %s 'source %s ; mdcget.py --met_start %s --met_stop %s --count'" % (ssh_host, source_path, met_start, met_stop), shell=True)
@@ -76,7 +73,6 @@ def check_new_data(met_start, met_stop, counts, ssh_host, source_path):
     return number_of_counts > counts
 
 
-
 def get_data(data_path, met_start, met_stop, config):
 
     # make directory to store the data
@@ -86,10 +82,7 @@ def get_data(data_path, met_start, met_stop, config):
     mdcget_path = which("mdcget.py")
 
     mdcget_cmd_line = ('%s --met_start %s --met_stop %s --outroot %s' % (mdcget_path, met_start, met_stop,
-                                                                         data_path + "/data"))
-
-    # mdcget_cmd_line = ("ssh galprop-cluster 'source ~/suli_jamie/jamie_setup.sh ; mdcget.py --met_start %s --met_stop %s --outroot %s'" % (met_start, met_stop,
-    #                                                                      data_path + "/data"))
+                                                                         os.path.join(data_path, "data")))
 
     print(mdcget_cmd_line)
 
@@ -97,7 +90,7 @@ def get_data(data_path, met_start, met_stop, config):
     subprocess.check_call(mdcget_cmd_line, shell=True)
 
     # get the counts from this call just in case new data has arrive between the last call to mdcget
-    ft1_data = pyfits.getdata(data_path + "/data_ft1.fit", "EVENTS")
+    ft1_data = pyfits.getdata(os.path.join(data_path, "data_ft1.fit"), "EVENTS")
 
     # update the counts stored in the database
     print("Updating Database")
@@ -123,14 +116,14 @@ def run_ltf_search(analysis_path, data_path):
     # get the path to execute ltf_search_for_transients.py
     ltf_search_for_transients_path = which("ltf_search_for_transients.py")
 
-    fit_file_path = ",".join([data_path + "/data_ft1.fit", data_path + "/data_ft2.fit"])
+    fit_file_path = ",".join([os.path.join(data_path, "data_ft1.fit"), os.path.join(data_path, "data_ft2.fit")])
     print(fit_file_path)
     ltf_search_cmd_line = ('%s --inp_fts %s --config %s --outfile %s --logfile %s --workdir %s' %
                            (ltf_search_for_transients_path,
                             fit_file_path,
                             configuration.config_file,
-                            analysis_path + "/out.txt",
-                            analysis_path + "/log.txt", workdir))
+                            os.path.join(analysis_path, "out.txt"),
+                            os.path.join(analysis_path,  "log.txt"), workdir))
     print(ltf_search_cmd_line)
 
     try:
@@ -145,7 +138,7 @@ def run_ltf_search(analysis_path, data_path):
         os.chdir(cwd)
 
         try:
-            #remove working directory
+            # remove working directory
             shutil.rmtree(workdir)
         except:
             print("Could not remove directory: %s" % workdir)
@@ -202,7 +195,7 @@ if __name__ == "__main__":
     make_dir_if_not_exist(analysis_path)
 
     # directory we will use to store data from mdcget.py
-    data_path = analysis_path + "/data"
+    data_path = os.path.join(analysis_path, "data")
 
     print("data path: %s" % data_path)
     print("starting counts check")
