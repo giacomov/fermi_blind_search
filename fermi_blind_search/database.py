@@ -250,21 +250,15 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', help='Path to config file', type=get_config, required=True)
-
+    parser.add_argument('--clear', help="If set, delete the database tables, and recreate them", action="store_true")
     args = parser.parse_args()
 
     configuration = args.config
 
     db = Database(configuration)
-    db.create_tables()
 
-    analysis = db.get_analysis_between_times(0, 554342405.000)
-    for row in analysis:
-        print(row)
-
-    results = db.get_results_to_email()
-    print(results)
-
-    db.delete_analysis_table()
-    db.delete_results_table()
+    if args.clear:
+        db.delete_analysis_table()
+        db.delete_results_table()
+        db.create_tables()
 
