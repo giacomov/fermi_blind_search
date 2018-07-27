@@ -33,6 +33,7 @@ setup(
             'numexpr',
             'pyyaml',
             'fitsio',
-            'sqlalchemy'
+            'sqlalchemy',
+            'mysql-python'
         ]
 )
