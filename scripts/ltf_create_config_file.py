@@ -61,6 +61,7 @@ port = 0
 username = ''
 
 # Address to send the emails to and email subject heading
+# for multiple recipients, use a comma separated list: person1@email.com,person2@email.com
 recipient = ''
 subject = ''
 

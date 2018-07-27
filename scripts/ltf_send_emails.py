@@ -42,17 +42,17 @@ def query_db_and_send_emails(config):
         # format the body of the email
         email_body = format_email(block)
 
+        recipients = config.get("Results email", "recipient").split(",")
+
         # create a MIME object so that the email send correctly
         msg = MIMEText(email_body)
         msg['From'] = config.get("Results email", "username")
-        msg['To'] = config.get("Results email", "recipient")
+        msg['To'] = ", ".join(recipients)
         msg['Subject'] = config.get("Results email", "subject")
 
         # send the email
         try:
-            server.sendmail(config.get("Results email", "username"),
-                            config.get("Results email", "recipient"),
-                            msg.as_string())
+            server.sendmail(config.get("Results email", "username"), recipients, msg.as_string())
         except:
             raise
         else:
