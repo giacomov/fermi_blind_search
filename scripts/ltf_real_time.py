@@ -93,7 +93,7 @@ if __name__ == "__main__":
     # run an analysis from most_recent_event_time - end_rerun_interval to most_recent_event
 
     # check if the same analysis has already been run
-    most_recent_analysis = real_time_db.get_exact_analysis(most_recent_event_time - end_rerun_interval ,
+    most_recent_analysis = real_time_db.get_exact_analysis(most_recent_event_time - end_rerun_interval,
                                                                    most_recent_event_time)
     if len(most_recent_analysis) == 0:
         # this analysis will be run for the first time

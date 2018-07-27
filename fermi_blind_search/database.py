@@ -154,8 +154,6 @@ class Database:
 
         # open a session
         session = Session()
-        print("all entries in db")
-        print(session.query(Analysis).all())
 
         # get all analyses with met_start or met_stop (met_start + duration) times within the range [start,stop]
         return session.query(Analysis).filter(or_(and_(Analysis.met_start >= start, Analysis.met_start <= stop),
