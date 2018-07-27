@@ -32,6 +32,8 @@ setup(
             'matplotlib',
             'numexpr',
             'pyyaml',
-            'fitsio'
+            'fitsio',
+            'sqlalchemy',
+            'mysql-python'
         ]
 )
