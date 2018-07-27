@@ -147,7 +147,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     configuration = args.config
-    print(args.check_db)
     # read each detected transient into a dictionary and store them as a list
     events = read_results(args.results)
 

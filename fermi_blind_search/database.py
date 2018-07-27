@@ -156,6 +156,15 @@ class Database:
                                                       and_(Analysis.met_start + Analysis.duration >= start,
                                                            Analysis.met_start + Analysis.duration <= stop))).all()
 
+    def get_exact_analysis(self, start, stop):
+
+        # open a session
+        session = Session()
+
+        # get all analyses with met_start or met_stop (met_start + duration) times within the range [start,stop]
+        return session.query(Analysis).filter(and_(Analysis.met_start == start,
+                                                   Analysis.met_start + Analysis.duration == stop)).all()
+
     def get_results(self, candidate_vals):
         # TODO: add check to make sure candidate_vals has the correct fields
 

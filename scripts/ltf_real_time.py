@@ -2,11 +2,13 @@
 
 import argparse
 import subprocess
+import os
 
 from fermi_blind_search.configuration import get_config
 from fermi_blind_search.database import Database
 from fermi_blind_search.which import which
 from myDataCatalog import DB
+from ltf_rerun_analysis import make_dir_if_not_exist
 
 
 def rerun_analysis(rerun_analysis_path, met_start, duration, counts, outfile, logfile, config):
@@ -14,18 +16,21 @@ def rerun_analysis(rerun_analysis_path, met_start, duration, counts, outfile, lo
 
     print("Running an analysis")
 
-    log_path = os.path.abspath(os.path.expandvars(
-        os.path.expanduser(config.get("Real time", "base_path") + "/" + str(met_start) + "_" +
-                           str(duration) + "_farm_log.txt")))
+    base_path = os.path.abspath(os.path.expandvars(
+        os.path.expanduser(config.get("Real time", "base_path"))))
+    log_path = os.path.join(base_path, str(met_start) + "_" + str(float(duration)))
+    make_dir_if_not_exist(log_path)
+    log_path = os.path.join(log_path, str(met_start) + "_" + str(duration) + "_farm_log.txt")
 
     # format the command we will execute
     rerun_analysis_cmd_line = ("qsub -j oe -o %s -F ' --met_start %s --duration %s --counts %s --outfile %s --logfile "
-                               "%s --config %s' %s" % (log_path, met_start, duration, counts, outfile, logfile, config,
-                                                       rerun_analysis_path))
+                               "%s --config %s' %s" % (log_path, met_start, duration, counts, outfile, logfile,
+                                                       config.config_file, rerun_analysis_path))
 
     # if you want to run locally, use this command line
     # rerun_analysis_cmd_line = ("%s --met_start %s --duration %s --counts %s --outfile %s --logfile %s --config %s" %
-    #                            (rerun_analysis_path, met_start, duration, counts, outfile, logfile, config))
+    #                            (rerun_analysis_path, met_start, duration, counts, outfile, logfile,
+    #                             config.config_file))
 
     print(rerun_analysis_cmd_line)
 
@@ -82,13 +87,13 @@ if __name__ == "__main__":
         print(row)
         # start a job on the farm that runs ltf_rerun_analysis.py
         rerun_analysis(rerun_analysis_path, row.met_start, row.duration, row.counts, row.outfile,
-                       row.logfile, configuration.config_file)
+                       row.logfile, configuration)
 
     print("finished reruning past analyses, getting the most recent analysis")
     # run an analysis from most_recent_event_time - end_rerun_interval to most_recent_event
 
     # check if the same analysis has already been run
-    most_recent_analysis = real_time_db.get_analysis_between_times(most_recent_event_time - end_rerun_interval,
+    most_recent_analysis = real_time_db.get_exact_analysis(most_recent_event_time - end_rerun_interval ,
                                                                    most_recent_event_time)
     if len(most_recent_analysis) == 0:
         # this analysis will be run for the first time
@@ -101,10 +106,10 @@ if __name__ == "__main__":
 
         # run the analysis
         rerun_analysis(rerun_analysis_path, most_recent_event_time - end_rerun_interval, end_rerun_interval, 0,
-                       "out.txt", "log.txt", configuration.config_file)
+                       "out.txt", "log.txt", configuration)
     else:
         # TODO: Add check that there is only one results returned??
         # this analysis has been run before so we want to rerun it with the same parameters
         row = most_recent_analysis[0]
         rerun_analysis(rerun_analysis_path, row.met_start, row.duration, row.counts, row.outfile, row.logfile,
-                       configuration.config_file)
+                       configuration)
