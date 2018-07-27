@@ -28,7 +28,10 @@ class Database:
         global _engine
 
         # initialize the engine using parameters from the config file
-        _engine = create_engine(config.get("Real time", "db_engine_url"))
+        engine_url = config.get("Real time", "db_dialect") + "://" + config.get("Real time", "db_username") + ":" + \
+                     config.get("Real time", "db_password") + "@" + config.get("Real time", "db_host") + ":" + \
+                     config.get("Real time", "db_port") + "/" + config.get("Real time", "db_path")
+        _engine = create_engine(engine_url)
 
         # bind the engine to the Base
         Base.metadata.bind = _engine
@@ -86,6 +89,7 @@ class Database:
             new_analysis = Analysis(met_start=analysis_vals['met_start'], duration=analysis_vals['duration'],
                                     counts=analysis_vals['counts'], outfile=analysis_vals['outfile'],
                                     logfile=analysis_vals['logfile'])
+            print(new_analysis)
         except KeyError:
             print('ERROR: The analysis you want to add does not have the proper fields!')
             raise
@@ -150,6 +154,8 @@ class Database:
 
         # open a session
         session = Session()
+        print("all entries in db")
+        print(session.query(Analysis).all())
 
         # get all analyses with met_start or met_stop (met_start + duration) times within the range [start,stop]
         return session.query(Analysis).filter(or_(and_(Analysis.met_start >= start, Analysis.met_start <= stop),
@@ -205,8 +211,8 @@ class Analysis(Base):
     __tablename__ = 'analysis'
 
     # define the columns of the table
-    met_start = Column(Float, Sequence('analysis_met_start_seq'), primary_key=True)
-    duration = Column(Float, Sequence('analysis_duration_seq'), primary_key=True)
+    met_start = Column(Float(32), Sequence('analysis_met_start_seq'), primary_key=True)
+    duration = Column(Float(32), Sequence('analysis_duration_seq'), primary_key=True)
     counts = Column(Integer)
     outfile = Column(String(250))
     logfile = Column(String(250))
@@ -224,10 +230,10 @@ class Results(Base):
     __tablename__ = 'results'
 
     # define the columns of the table
-    ra = Column(Float)
-    dec = Column(Float)
-    met_start = Column(Float, Sequence('results_met_start_seq'), primary_key=True)
-    interval = Column(Float, Sequence('results_interval_seq'), primary_key=True)
+    ra = Column(Float(32))
+    dec = Column(Float(32))
+    met_start = Column(Float(32), Sequence('results_met_start_seq'), primary_key=True)
+    interval = Column(Float(32), Sequence('results_interval_seq'), primary_key=True)
     email = Column(Boolean)
 
     def __repr__(self):
@@ -251,3 +257,14 @@ if __name__ == "__main__":
 
     db = Database(configuration)
     db.create_tables()
+
+    analysis = db.get_analysis_between_times(0, 554342405.000)
+    for row in analysis:
+        print(row)
+
+    results = db.get_results_to_email()
+    print(results)
+
+    db.delete_analysis_table()
+    db.delete_results_table()
+

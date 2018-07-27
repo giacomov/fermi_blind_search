@@ -37,7 +37,12 @@ cluster_distance = 15.0
 [Real time]
 # describes the type of database and the path to where it is stored. 
 # See SQLAlchemy for more information about formatting
-db_engine_url = sqlite:///test_db1.db
+db_dialect = mysql
+db_username = 
+db_password = 
+db_host = localhost
+db_port = 3306
+db_path = database
 
 # real time will rerun all analyses that use data from start_interval to end_interval hours ago
 # and an analysis on end_interval to the current time
