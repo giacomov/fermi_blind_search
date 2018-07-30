@@ -2,13 +2,9 @@ from fermi_blind_search.database import Database
 from fermi_blind_search.configuration import get_config
 import pytest
 
-def read_config_file():
-   config_path = "/home/suli_students/suli_jamie/test_real_time/config.txt"
-   configuration = get_config(config_path)
-   return configuration
 
-def test_setup():
-    configuration = read_config_file()
+def test_setup(configuration):
+
     db = Database(configuration)
 
     # create the tables so deleting them does not fail
@@ -21,8 +17,9 @@ def test_setup():
     # re create the tables so we can use them
     db.create_tables()
 
-def test_analysis_row_with_missing_col():
-    configuration = read_config_file()
+
+def test_analysis_row_with_missing_col(configuration):
+
     db = Database(configuration)
     analysis_to_add = {"duration": 1.2, "counts": 4, "outfile": "out.txt", "logfile": "log.txt"}
     with pytest.raises(KeyError):
@@ -53,8 +50,8 @@ def test_analysis_row_with_missing_col():
 #         db.add_analysis(analysis_to_add)
 #     # do something to confirm we get a failed assertion
 
-def test_result_row_with_missing_col():
-    configuration = read_config_file()
+def test_result_row_with_missing_col(configuration):
+
     db = Database(configuration)
     result_to_add = {"interval": 4.7, "ra": 2.0, "dec": 9.2}
     with pytest.raises(KeyError):
@@ -69,24 +66,24 @@ def test_result_row_with_missing_col():
 #         db.add_candidate(result_to_add)
 #     # do something to confirm that we get a failed assertion?
 
-def test_add_same_analysis_twice():
-    configuration = read_config_file()
+def test_add_same_analysis_twice(configuration):
+
     db = Database(configuration)
     analysis_to_add = {"met_start": 45.1, "duration": 1.2, "counts": 4, "outfile": "out.txt", "logfile": "log.txt"}
     db.add_analysis(analysis_to_add)
     with pytest.raises(Exception):
         db.add_analysis(analysis_to_add)
 
-def test_add_same_result_twice():
-    configuration = read_config_file()
+def test_add_same_result_twice(configuration):
+
     db = Database(configuration)
     result_to_add = {"met_start": 4.8, "interval": 4.7, "ra": 2.0, "dec": 9.2, "email": False}
     db.add_candidate(result_to_add)
     with pytest.raises(Exception):
         db.add_candidate(result_to_add)
 
-def test_get_results():
-    configuration = read_config_file()
+def test_get_results(configuration):
+
     db = Database(configuration)
     result_to_add = {"met_start": 120.9, "interval": 4.7, "ra": 2.0, "dec": 9.2, "email": False}
     result_to_add2 = {"met_start": 125.1, "interval": 5.2, "ra": 3.0, "dec": 10.2, "email": True}
@@ -105,8 +102,8 @@ def test_get_results():
     assert (result_to_add in results_list) and (result_to_add2 in results_list) and \
            (result_to_add3 not in results_list), "intended results not in list"
 
-def test_get_analyses():
-    configuration = read_config_file()
+def test_get_analyses(configuration):
+
     db = Database(configuration)
     analysis_to_add = {"met_start": 145.1, "duration": 100.2, "counts": 45, "outfile": "out.txt", "logfile": "log.txt"}
     analysis_to_add2 = {"met_start": 150.1, "duration": 95.0, "counts": 70, "outfile": "out.txt", "logfile": "log.txt"}
@@ -124,8 +121,8 @@ def test_get_analyses():
     assert (analysis_to_add in results_list) and (analysis_to_add2 in results_list) and \
            (analysis_to_add3 not in results_list)
 
-def test_get_results_to_email():
-    configuration = read_config_file()
+def test_get_results_to_email(configuration):
+
     db = Database(configuration)
     result_to_add = {"met_start": 120.9, "interval": 4.7, "ra": 2.0, "dec": 9.2, "email": False}
     result_to_add2 = {"met_start": 125.1, "interval": 5.2, "ra": 3.0, "dec": 10.2, "email": True}
@@ -145,8 +142,8 @@ def test_get_results_to_email():
     assert (result_to_add in results_list) and (result_to_add3 in results_list) and (result_to_add2 not in results_list)
 
 
-def test_change_email():
-    configuration = read_config_file()
+def test_change_email(configuration):
+
     db = Database(configuration)
     result_to_add = {"met_start": 120.9, "interval": 4.7, "ra": 2.0, "dec": 9.2, "email": False}
     result_to_add2 = {"met_start": 125.1, "interval": 5.2, "ra": 3.0, "dec": 10.2, "email": True}
@@ -172,8 +169,8 @@ def test_change_email():
     assert row_to_change not in results
 
 
-def test_cleanup():
-    configuration = read_config_file()
+def test_cleanup(configuration):
+
     db = Database(configuration)
     db.delete_analysis_table()
     db.delete_results_table()
