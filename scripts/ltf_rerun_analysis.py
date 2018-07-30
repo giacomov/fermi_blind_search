@@ -78,16 +78,6 @@ def get_data(data_path, met_start, met_stop, config):
 
 def run_ltf_search(workdir, outfile, logfile):
 
-    # make a work directory
-    # workdir = os.path.join(analysis_path, "work")
-    # make_dir_if_not_exist(workdir)
-
-    # store current directory
-    # cwd = os.getcwd()
-    #
-    # # move there
-    # os.chdir(workdir)
-
     # get the path to execute ltf_search_for_transients.py
     ltf_search_for_transients_path = which("ltf_search_for_transients.py")
 
@@ -104,16 +94,6 @@ def run_ltf_search(workdir, outfile, logfile):
 
     except:
         raise
-
-    # finally:
-    #     # move back to original directory
-    #     os.chdir(cwd)
-    #
-    #     try:
-    #         # remove working directory
-    #         shutil.rmtree(workdir)
-    #     except:
-    #         print("Could not remove directory: %s" % workdir)
 
     return
 

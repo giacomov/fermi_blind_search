@@ -32,9 +32,6 @@ def rerun_analysis(rerun_analysis_path, met_start, duration, counts, outfile, lo
     rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$LOGFILE", str(logfile))
     rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$CONFIG", str(config.config_file))
     rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$SCRIPT", rerun_analysis_path)
-    # rerun_analysis_cmd_line = ("qsub -j oe -o %s -F ' --met_start %s --duration %s --counts %s --outfile %s --logfile "
-    #                            "%s --config %s' %s" % (log_path, met_start, duration, counts, outfile, logfile,
-    #                                                    config.config_file, rerun_analysis_path))
 
     # if you want to run locally, use this command line
     # rerun_analysis_cmd_line = ("%s --met_start %s --duration %s --counts %s --outfile %s --logfile %s --config %s" %

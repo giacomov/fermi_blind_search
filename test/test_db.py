@@ -10,6 +10,15 @@ def read_config_file():
 def test_setup():
     configuration = read_config_file()
     db = Database(configuration)
+
+    # create the tables so deleting them does not fail
+    db.create_tables()
+
+    # drop the tables to make sure they are empty when we start testing
+    db.delete_results_table()
+    db.delete_analysis_table()
+
+    # re create the tables so we can use them
     db.create_tables()
 
 def test_analysis_row_with_missing_col():
