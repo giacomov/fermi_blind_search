@@ -23,8 +23,7 @@ def check_new_data(met_start, met_stop, counts, ssh_host, source_path):
     try:
         # call mdcget with --count to just return the counts in the time range
         out = subprocess.check_output(
-            "ssh %s 'source %s ; mdcget.py --met_start %s --met_stop %s --count'" % (ssh_host, source_path, met_start,
-                                                                                     met_stop), shell=True)
+            "ssh %s 'mdcget.py --met_start %s --met_stop %s --count'" % (ssh_host, met_start, met_stop), shell=True)
     except:
         raise IOError("Could not get number of counts between %s and %s" % (met_start, met_stop))
 
