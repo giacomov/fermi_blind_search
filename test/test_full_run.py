@@ -41,12 +41,14 @@ def test_most_recent_not_run_before(configuration):
     with open(write_path) as f:
         results = f.read().split("\n")
 
-    assert results[1] == \
-           "LTF010432.25-832140.64 16.1343688965 -83.361289978 410205293.043 410217452.222 9 1.0184731220185956e-07"
-
     db.delete_analysis_table()
     db.delete_results_table()
     shutil.rmtree(configuration.get("Real time", "base_path"))
+
+    assert results[1] == \
+           "LTF010432.25-832140.64 16.1343688965 -83.361289978 410205293.043 410217452.222 9 1.0184731220185956e-07"
+
+
 
 
 def test_most_recent_has_been_run_should_rerun(configuration):
@@ -171,39 +173,42 @@ def test_rerun_past_analyses(configuration):
 
     # farm jobs have completed, check the results
     base_dir = configuration.get("Real time", "base_path")
-    assert len(os.listdir(os.path.join(base_dir, "410139803.0_40000.0"))) == 1
-    assert len(os.listdir(os.path.join(base_dir, "410141803.0_40000.0"))) == 1
-    assert len(os.listdir(os.path.join(base_dir, "410183003.0_40200.0"))) == 1
+    len1 = len(os.listdir(os.path.join(base_dir, "410139803.0_40000.0")))
+    len2 = len(os.listdir(os.path.join(base_dir, "410141803.0_40000.0")))
+    len3 = len(os.listdir(os.path.join(base_dir, "410183003.0_40200.0")))
 
-    results = ''
+    results1 = ''
     with open(os.path.join(base_dir, "410097703.0_43200.0/out.txt")) as f:
-        results = f.read()
+        results1 = f.read()
 
-    assert results == \
-           "# name ra dec tstarts tstops counts probabilities"
-
-
-    results = []
+    results2 = []
     with open(os.path.join(base_dir, "410097703.0_43200.0/out.txt")) as f:
-        results = f.read().split("\n")
+        results2 = f.read().split("\n")
 
-    assert results[1] == \
-           "LTF003738.54-043812.88 9.41058921814 -4.63691186905 410146516.288,410157957.022,410158188.93 410157946.008,410158181.858,410181087.077 3,22,24 0.4415005372786246,6.762756319877049e-27,0.021202409309007006"
-
-    results = []
+    results3 = []
     with open(os.path.join(base_dir, "410183003.0_40000.0/out.txt")) as f:
-        results = f.read().split("\n")
+        results3 = f.read().split("\n")
 
-    assert results[1] == \
-           "LTF222917.20-570319.91 337.321655273 -57.0555305481 410214484.059 410214503.816 3 5.196131451719908e-06"
-
-    results = []
+    results4 = []
     with open(os.path.join(base_dir, "410184003.0_43200.0/out.txt")) as f:
-        results = f.read().split("\n")
-
-    assert results[1] == \
-           "LTF010432.25-832140.64 16.1343688965 -83.361289978 410205293.043 410217452.222 9 1.0184731220185956e-07"
+        results4 = f.read().split("\n")
 
     db.delete_analysis_table()
     db.delete_results_table()
     shutil.rmtree(configuration.get("Real time", "base_path"))
+
+    assert len1 == 1
+    assert len2 == 1
+    assert len3 == 1
+
+    assert results1 == \
+           "# name ra dec tstarts tstops counts probabilities"
+
+    assert results2[1] == \
+           "LTF003738.54-043812.88 9.41058921814 -4.63691186905 410146516.288,410157957.022,410158188.93 410157946.008,410158181.858,410181087.077 3,22,24 0.4415005372786246,6.762756319877049e-27,0.021202409309007006"
+
+    assert results3[1] == \
+           "LTF222917.20-570319.91 337.321655273 -57.0555305481 410214484.059 410214503.816 3 5.196131451719908e-06"
+
+    assert results4[1] == \
+           "LTF010432.25-832140.64 16.1343688965 -83.361289978 410205293.043 410217452.222 9 1.0184731220185956e-07"
