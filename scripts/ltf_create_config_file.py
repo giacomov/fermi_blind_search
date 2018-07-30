@@ -85,9 +85,6 @@ subject = ''
 # host with access to data accessed by mdcget.py
 ssh_host = galprop-cluster
 
-# path to setup file to allow mdcget.py to run 
-source_path = ~/suli_jamie/jamie_setup.sh
-
 # stores if we are at SLAC (False for at Stanford) 
 at_slac = False
 
