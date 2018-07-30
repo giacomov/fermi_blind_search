@@ -3,7 +3,7 @@ from fermi_blind_search.configuration import get_config
 import pytest
 
 def read_config_file():
-   config_path = "/home/suli_students/suli_jamie/config_test.txt"
+   config_path = "/home/suli_students/suli_jamie/test_real_time/config.txt"
    configuration = get_config(config_path)
    return configuration
 

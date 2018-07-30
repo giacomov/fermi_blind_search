@@ -37,19 +37,35 @@ cluster_distance = 15.0
 [Real time]
 # describes the type of database and the path to where it is stored. 
 # See SQLAlchemy for more information about formatting
+
+# if using sqlite set this to True - will create database at db_path, but do not need username, pword, etc
+is_sqlite = False
+
+# if not using sqlite, need this info
 db_dialect = mysql
 db_username = 
 db_password = 
 db_host = localhost
 db_port = 3306
+
+# regardless of database driver, need to know where to store the db!
 db_path = database
+
+# tolerance for ra, dec, start time, and interval when determining if two detections are the same
+ra_tol = 1
+dec_tol = 1
+start_tol = 10
+int_tol = 10
 
 # real time will rerun all analyses that use data from start_interval to end_interval hours ago
 # and an analysis on end_interval to the current time
 start_interval = 24
 end_interval = 12
 
-# path to where to store results, log files, and tmp files
+# command to start an analysis on the farm
+farm_command = qsub -l nodes=1:ppn=$NUM_CPUS -j oe -o $FARM_LOG_PATH -F ' --met_start $MET_START --duration $DURATION --counts $COUNTS --outfile $OUTFILE --logfile $LOGFILE --config $CONFIG' $SCRIPT
+
+# path to where to store results
 base_path = ./real_time_work
 
 [Results email]
@@ -71,6 +87,9 @@ ssh_host = galprop-cluster
 
 # path to setup file to allow mdcget.py to run 
 source_path = ~/suli_jamie/jamie_setup.sh
+
+# stores if we are at SLAC (False for at Stanford) 
+at_slac = False
 
 [Hardware]
 ncpus = 10

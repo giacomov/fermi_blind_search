@@ -10,10 +10,8 @@ from email.mime.text import MIMEText
 
 def format_email(block):
 
-    # using the start and stop times, ra, and dec of the blocks we need to email, format
+    # using the start time, interval, ra, and dec of the blocks we need to email, format
     # the body of the email
-
-    # interval = block.stop_time - block.start_time
 
     string = ('TITLE: GCN/GBM NOTICE \nNOTICE_TYPE: User-supplied job \nGRB_RA: %s \nGRB_DEC: %s \nGRB_MET: %s \nANALYSIS_INTERVAL: %s\n'
               % (str(block.ra), str(block.dec), str(block.met_start), str(block.interval)))

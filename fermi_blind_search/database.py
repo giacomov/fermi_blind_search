@@ -28,9 +28,12 @@ class Database:
         global _engine
 
         # initialize the engine using parameters from the config file
-        engine_url = config.get("Real time", "db_dialect") + "://" + config.get("Real time", "db_username") + ":" + \
-                     config.get("Real time", "db_password") + "@" + config.get("Real time", "db_host") + ":" + \
-                     config.get("Real time", "db_port") + "/" + config.get("Real time", "db_path")
+        if config.get("Real time", "is_sqlite") == "True":
+            engine_url = "sqlite:///" + config.get("Real time", "db_path")
+        else:
+            engine_url = config.get("Real time", "db_dialect") + "://" + config.get("Real time", "db_username") + ":" + \
+                         config.get("Real time", "db_password") + "@" + config.get("Real time", "db_host") + ":" + \
+                         config.get("Real time", "db_port") + "/" + config.get("Real time", "db_path")
         _engine = create_engine(engine_url)
 
         # bind the engine to the Base
@@ -38,6 +41,8 @@ class Database:
 
         # bind the engine to the session
         Session.configure(bind=_engine)
+
+        self.config = config
 
     def create_tables(self):
 
@@ -89,11 +94,11 @@ class Database:
             new_analysis = Analysis(met_start=analysis_vals['met_start'], duration=analysis_vals['duration'],
                                     counts=analysis_vals['counts'], outfile=analysis_vals['outfile'],
                                     logfile=analysis_vals['logfile'])
-            print(new_analysis)
         except KeyError:
             print('ERROR: The analysis you want to add does not have the proper fields!')
             raise
-        # TODO: need to put a catch all except here?
+        except:
+            raise
         else:
             # open a session, add the analysis to the table, close the session
             session = Session()
@@ -143,7 +148,6 @@ class Database:
             raise
         except:
             raise
-        # TODO: need to add a catch all except here?
         else:
             # open a session, add the result to the table, close the session
             session = Session()
@@ -165,30 +169,43 @@ class Database:
         # open a session
         session = Session()
 
-        # get all analyses with met_start or met_stop (met_start + duration) times within the range [start,stop]
+        # get all analyses with start time and stop times exactly matching the parameters
         return session.query(Analysis).filter(and_(Analysis.met_start == start,
                                                    Analysis.met_start + Analysis.duration == stop)).all()
 
     def get_results(self, candidate_vals):
-        # TODO: add check to make sure candidate_vals has the correct fields
+
+        # check that candidate vals has the correct fields to perform a search
+        assert (candidate_vals['ra'] is not None and candidate_vals['dec'] is not None and
+                candidate_vals['met_start'] is not None and candidate_vals['interval'] is not None), \
+            "One of the parameters to enter the candidate into the database is missing. Parameters are ra, dec, " \
+            "met_start, interval"
 
         # open a session
         session = Session()
-        # TODO: change tolerance level to be one that makes sense
+
+        # get the tolerance ranges for determining if we have a match
+        ra_tol = float(self.config.get("Real time", "ra_tol"))
+        dec_tol = float(self.config.get("Real time", "dec_tol"))
+        start_tol = float(self.config.get("Real time", "start_tol"))
+        int_tol = float(self.config.get("Real time", "int_tol"))
 
         # get all results that match the passed candidate within a certain tolerance
-        return session.query(Results).filter(and_(candidate_vals['ra'] - 1 <= Results.ra,
-                                                  Results.ra <= candidate_vals['ra'] + 1,
-                                                  candidate_vals['dec'] - 1 <= Results.dec,
-                                                  Results.dec <= candidate_vals['dec'] + 1,
-                                                  candidate_vals['met_start'] - 10 <= Results.met_start,
-                                                  Results.met_start <= candidate_vals['met_start'] + 10,
-                                                  candidate_vals['interval'] - 10 <= Results.interval,
-                                                  Results.interval <= candidate_vals['interval'] + 10)).all()
+        return session.query(Results).filter(and_(candidate_vals['ra'] - ra_tol <= Results.ra,
+                                                  Results.ra <= candidate_vals['ra'] + ra_tol,
+                                                  candidate_vals['dec'] - dec_tol <= Results.dec,
+                                                  Results.dec <= candidate_vals['dec'] + dec_tol,
+                                                  candidate_vals['met_start'] - start_tol <= Results.met_start,
+                                                  Results.met_start <= candidate_vals['met_start'] + start_tol,
+                                                  candidate_vals['interval'] - int_tol <= Results.interval,
+                                                  Results.interval <= candidate_vals['interval'] + int_tol)).all()
 
     def get_results_to_email(self):
+
+        # open a session
         session = Session()
 
+        # get all results that have not been emailed yet
         return session.query(Results).filter(Results.email == 0).all()
 
     def update_result_email(self, candidate, email_val=False):
@@ -244,7 +261,7 @@ class Results(Base):
 
 if __name__ == "__main__":
 
-    # TODO: remove the main class - used right now for testing
+    # Allows you to quickly delete and re-create the database.
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', help='Path to config file', type=get_config, required=True)
@@ -253,10 +270,14 @@ if __name__ == "__main__":
 
     configuration = args.config
 
+    # start db connection
     db = Database(configuration)
 
     if args.clear:
+        # delete the tables
         db.delete_analysis_table()
         db.delete_results_table()
+
+        # re-create the tables
         db.create_tables()
 

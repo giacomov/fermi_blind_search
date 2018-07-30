@@ -16,7 +16,6 @@ def read_results(filename):
     events = []
 
     if data.size == 1:
-        print("size 1")
         # when there is only one result, we have to deal with the recarray differently
         # because the types of the values is different
         events.append({'name': str(data.name.reshape(1,)[0]), 'ra': float(data.ra.reshape(1,)[0]),
@@ -26,7 +25,6 @@ def read_results(filename):
                        'counts': [float(j) for j in str(data.counts.reshape(1,)[0]).split(',')],
                        'probs': [float(j) for j in str(data.probabilities.reshape(1,)[0]).split(',')]})
     else:
-        print("other size")
         for i in range(len(data)):
             # we convert start_times stop_time, counts, and probs to float values because they will be used
             # for comparisons when determining which blocks to include in the email
@@ -109,7 +107,7 @@ def get_blocks(event_dict):
 
 
 def already_in_db(block_dict, ra, dec, config):
-    #returns true if the block is in the db
+    # returns true if the block is in the db
 
     # get the interval of the transient
     interval = block_dict['stop_time'] - block_dict['start_time']
@@ -118,15 +116,11 @@ def already_in_db(block_dict, ra, dec, config):
     new_block_dict = {'ra': float(ra), 'dec': float(dec), 'met_start': block_dict['start_time'], 'interval': interval,
                       'email': False}
 
-    print(new_block_dict)
     # establish db connection
     db = Database(config)
 
     # get any transients that match ours
     matches = db.get_results(new_block_dict)
-
-    print(matches)
-    print(len(matches) > 0)
 
     if len(matches) == 0:
         # add the candidate to the database
