@@ -1,9 +1,4 @@
-from fermi_blind_search.process_blind_search_results import read_results, get_blocks
-
-def test_read_results():
-    filepath = "/home/suli_students/suli_jamie/fermi_blind_search/test/results_test.txt"
-    events = read_results(filepath)
-    assert len(events) == 14, "didn't read the correct number of results"
+from fermi_blind_search.process_blind_search_results import get_blocks
 
 def test_two_blocks_first_block():
     event_dict = {"name": "two_blocks", "dec": 25.4, "ra": 12.3, "start_times": [11,17], "stop_times": [15,20],

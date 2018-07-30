@@ -72,6 +72,7 @@ def test_most_recent_has_been_run_should_rerun(configuration):
     print(cmd_line)
     subprocess.check_call(cmd_line, shell=True)
 
+    time.sleep(60)
     while len(subprocess.check_output("qstat")) > 0:
         time.sleep(5)
 
@@ -106,6 +107,7 @@ def test_most_recent_has_been_run_should_not_rerun(configuration):
 
     print(cmd_line)
     subprocess.check_call(cmd_line, shell=True)
+    time.sleep(60)
     while len(subprocess.check_output("qstat")) > 0:
         time.sleep(5)
 
@@ -168,6 +170,7 @@ def test_rerun_past_analyses(configuration):
     print(cmd_line)
     subprocess.check_call(cmd_line, shell=True)
 
+    time.sleep(60)
     while len(subprocess.check_output("qstat")) > 0:
         time.sleep(5)
 
