@@ -1,4 +1,4 @@
-from ltf_send_results_email import read_results, get_blocks
+from ltf_process_search_results import read_results, get_blocks
 
 def test_read_results():
     filepath = "/home/suli_students/suli_jamie/fermi_blind_search/test/results_test.txt"
