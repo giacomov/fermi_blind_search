@@ -23,15 +23,15 @@ def rerun_analysis(rerun_analysis_path, met_start, duration, counts, outfile, lo
 
     # format the command we will execute
     rerun_analysis_cmd_line = config.get("Real time", "farm_command")
-    rerun_analysis_cmd_line.replace("$FARM_LOG_PATH", log_path)
-    rerun_analysis_cmd_line.replace("$NUM_CPUS", config.get("Hardware", "cpus"))
-    rerun_analysis_cmd_line.replace("$MET_START", met_start)
-    rerun_analysis_cmd_line.replace("$DURATION", duration)
-    rerun_analysis_cmd_line.replace("$COUNTS", counts)
-    rerun_analysis_cmd_line.replace("$OUTFILE", outfile)
-    rerun_analysis_cmd_line.replace("$LOGFILE", logfile)
-    rerun_analysis_cmd_line.replace("$CONFIG", config)
-    rerun_analysis_cmd_line.replace("$SCRIPT", rerun_analysis_path)
+    rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$FARM_LOG_PATH", log_path)
+    rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$NUM_CPUS", config.get("Hardware", "ncpus"))
+    rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$MET_START", str(met_start))
+    rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$DURATION", str(duration))
+    rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$COUNTS", str(counts))
+    rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$OUTFILE", str(outfile))
+    rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$LOGFILE", str(logfile))
+    rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$CONFIG", str(config.config_file))
+    rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$SCRIPT", rerun_analysis_path)
     # rerun_analysis_cmd_line = ("qsub -j oe -o %s -F ' --met_start %s --duration %s --counts %s --outfile %s --logfile "
     #                            "%s --config %s' %s" % (log_path, met_start, duration, counts, outfile, logfile,
     #                                                    config.config_file, rerun_analysis_path))
