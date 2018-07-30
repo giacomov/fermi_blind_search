@@ -8,7 +8,7 @@ from fermi_blind_search.configuration import get_config
 from fermi_blind_search.database import Database
 from fermi_blind_search.which import which
 from myDataCatalog import DB
-from ltf_rerun_analysis import make_dir_if_not_exist
+from fermi_blind_search.make_directory import make_dir_if_not_exist
 
 
 def rerun_analysis(rerun_analysis_path, met_start, duration, counts, outfile, logfile, config):

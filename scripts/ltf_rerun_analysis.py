@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 #PBS -l walltime=04:00:00
-#PBS
 #PBS -l vmem=30gb
 #PBS -V
 
@@ -16,20 +15,7 @@ import sys
 from fermi_blind_search.configuration import get_config
 from fermi_blind_search.which import which
 from fermi_blind_search.database import Database
-
-
-def make_dir_if_not_exist(path):
-
-    # check if the directory already exists
-    if not os.path.exists(path):
-        # it doesn't! so we try to make it
-        try:
-            os.makedirs(path)
-        except:
-            print("Could not make the directory %s" % path)
-            raise
-        else:
-            print("successfully created dir %s" % path)
+from fermi_blind_search.make_directory import make_dir_if_not_exist
 
 
 def check_new_data(met_start, met_stop, counts, ssh_host, source_path):

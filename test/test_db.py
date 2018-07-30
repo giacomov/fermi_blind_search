@@ -1,5 +1,4 @@
 from fermi_blind_search.database import Database
-from fermi_blind_search.configuration import get_config
 import pytest
 
 

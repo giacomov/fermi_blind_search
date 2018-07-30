@@ -5,13 +5,9 @@ import time
 
 from fermi_blind_search.which import which
 from fermi_blind_search.database import Database
-from fermi_blind_search.configuration import get_config
-from ltf_real_time import rerun_analysis
 
-_config_path = "/home/suli_students/suli_jamie/test_real_time/config.txt"
 
-def test_setup():
-    configuration = get_config(_config_path)
+def test_setup(configuration):
 
     # make sure we start with an empty database
     db = Database(configuration)
@@ -20,11 +16,10 @@ def test_setup():
     db.delete_analysis_table()
 
 
-def test_most_recent_not_run_before():
+def test_most_recent_not_run_before(configuration):
     real_time_path = which("ltf_real_time.py")
     print(real_time_path)
     most_recent_event = 410227203.000
-    configuration = get_config(_config_path)
 
     db = Database(configuration)
     db.create_tables()
@@ -54,11 +49,10 @@ def test_most_recent_not_run_before():
     shutil.rmtree(configuration.get("Real time", "base_path"))
 
 
-def test_most_recent_has_been_run_should_rerun():
+def test_most_recent_has_been_run_should_rerun(configuration):
     real_time_path = which("ltf_real_time.py")
     print(real_time_path)
     most_recent_event = 410227203.000
-    configuration = get_config(_config_path)
 
     db = Database(configuration)
     db.create_tables()
@@ -94,11 +88,10 @@ def test_most_recent_has_been_run_should_rerun():
            "LTF010432.25-832140.64 16.1343688965 -83.361289978 410205293.043 410217452.222 9 1.0184731220185956e-07"
 
 
-def test_most_recent_has_been_run_should_not_rerun():
+def test_most_recent_has_been_run_should_not_rerun(configuration):
     real_time_path = which("ltf_real_time.py")
     print(real_time_path)
     most_recent_event = 410227203.000
-    configuration = get_config(_config_path)
 
     db = Database(configuration)
     db.create_tables()
@@ -126,11 +119,10 @@ def test_most_recent_has_been_run_should_not_rerun():
     assert len(ls) == 1
 
 
-def test_rerun_past_analyses():
+def test_rerun_past_analyses(configuration):
     real_time_path = which("ltf_real_time.py")
     print(real_time_path)
     most_recent_event = 410227203.000
-    configuration = get_config(_config_path)
 
     db = Database(configuration)
     db.create_tables()
