@@ -24,7 +24,7 @@ def test_most_recent_not_run_before(configuration):
     db = Database(configuration)
     db.create_tables()
 
-    cmd_line = ("%s --config %s --test_time %s" % (real_time_path, _config_path, most_recent_event))
+    cmd_line = ("%s --config %s --test_time %s" % (real_time_path, configuration.config_file, most_recent_event))
     print(cmd_line)
     subprocess.check_call(cmd_line, shell=True)
     time.sleep(60)
@@ -65,7 +65,7 @@ def test_most_recent_has_been_run_should_rerun(configuration):
     for row in results:
         print(row)
 
-    cmd_line = ("%s --config %s --test_time %s" % (real_time_path, _config_path, most_recent_event))
+    cmd_line = ("%s --config %s --test_time %s" % (real_time_path, configuration.config_file, most_recent_event))
 
     print(cmd_line)
     subprocess.check_call(cmd_line, shell=True)
@@ -100,7 +100,7 @@ def test_most_recent_has_been_run_should_not_rerun(configuration):
                        "logfile": "log.txt"}
     db.add_analysis(analysis_to_add)
 
-    cmd_line = ("%s --config %s --test_time %s" % (real_time_path, _config_path, most_recent_event))
+    cmd_line = ("%s --config %s --test_time %s" % (real_time_path, configuration.config_file, most_recent_event))
 
     print(cmd_line)
     subprocess.check_call(cmd_line, shell=True)
@@ -161,7 +161,7 @@ def test_rerun_past_analyses(configuration):
                        "logfile": "log.txt"}
     db.add_analysis(analysis_to_add)
 
-    cmd_line = ("%s --config %s --test_time %s" % (real_time_path, _config_path, most_recent_event))
+    cmd_line = ("%s --config %s --test_time %s" % (real_time_path, configuration.config_file, most_recent_event))
 
     print(cmd_line)
     subprocess.check_call(cmd_line, shell=True)
