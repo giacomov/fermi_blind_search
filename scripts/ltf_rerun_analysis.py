@@ -125,13 +125,6 @@ if __name__ == "__main__":
     # set up logging
     logger = myLogging.log.getLogger("ltf_rerun_analysis")
 
-    # Now overwrite stdout and stderr so they will go to the logger
-    sl = myLogging.StreamToLogger(logger, myLogging.log.DEBUG)
-    sys.stdout = sl
-
-    sl = myLogging.StreamToLogger(logger, myLogging.log.ERROR)
-    sys.stderr = sl
-
     logger.debug("Arguments: %s" % (args.__dict__))
 
     # get the configuration object
