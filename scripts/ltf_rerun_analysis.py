@@ -175,6 +175,7 @@ if __name__ == "__main__":
             process_results(outfile, configuration.config_file)
         except:
             traceback.print_exc(sys.stdout)
+
         else:
             shutil.copy2(outfile, analysis_path)
             shutil.copy2(logfile, analysis_path)
