@@ -27,7 +27,9 @@ def rerun_analysis(rerun_analysis_path, met_start, duration, counts, outfile, lo
     # format the command we will execute
     rerun_analysis_cmd_line = config.get("Real time", "farm_command")
     rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$FARM_LOG_PATH", log_path)
-    rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$JOB_NAME", str(met_start) + "_" + str(float(duration)))
+    # the -N parameter of the qsub command only accepts strings of 15 chars or less
+    rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$JOB_NAME",
+                                                              "%.15s" % str(met_start) + "_" + str(float(duration)))
     rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$NUM_CPUS", config.get("Hardware", "ncpus"))
     rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$MET_START", str(met_start))
     rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$DURATION", str(duration))
