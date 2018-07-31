@@ -16,9 +16,13 @@ from fermi_blind_search.configuration import get_config
 from fermi_blind_search.which import which
 from fermi_blind_search.database import Database, database_connection
 from fermi_blind_search.make_directory import make_dir_if_not_exist
+from fermi_blind_search import myLogging
 
 
-def check_new_data(met_start, met_stop, counts, ssh_host):
+def check_new_data(met_start, met_stop, counts, ssh_host, logger):
+
+    logger.info("Checking if there is new data for the analysis with the parameters: met_start: %s met_stop: %s, "
+               "counts: %s" % (met_start, met_stop, counts))
 
     try:
         # call mdcget with --count to just return the counts in the time range
@@ -33,8 +37,10 @@ def check_new_data(met_start, met_stop, counts, ssh_host):
     return number_of_counts > counts
 
 
-def get_data(data_path, met_start, met_stop, config):
+def get_data(data_path, met_start, met_stop, config, logger):
 
+    logger.info("Fetching data for the analysis with the parameters: met_start: %s met_stop: %s, " % (met_start,
+                                                                                                     met_stop))
     # make directory to store the data
     make_dir_if_not_exist(data_path)
 
@@ -44,7 +50,7 @@ def get_data(data_path, met_start, met_stop, config):
     mdcget_cmd_line = ('%s --met_start %s --met_stop %s --outroot %s' % (mdcget_path, met_start, met_stop,
                                                                          os.path.join(data_path, "data")))
 
-    print(mdcget_cmd_line)
+    logger.info("mdcget command line: %s" % mdcget_cmd_line)
 
     # call mdcget and wait for it to return
     subprocess.check_call(mdcget_cmd_line, shell=True)
@@ -53,25 +59,30 @@ def get_data(data_path, met_start, met_stop, config):
     ft1_data = pyfits.getdata(os.path.join(data_path, "data_ft1.fit"), "EVENTS")
 
     # update the counts stored in the database
-    print("Updating Database")
     counts = len(ft1_data)
+    logger.info("Updating the database to reflect the new number of counts. The parameters are: met_start %s, "
+                "duration: %s, counts %s" % (met_start, float(met_stop) - float(met_start), counts))
     db = Database(config)
     db.update_analysis_counts(met_start, float(met_stop) - float(met_start), counts)
 
     return
 
 
-def run_ltf_search(workdir, outfile, logfile):
+def run_ltf_search(workdir, outfile, logfile, logger):
 
     # get the path to execute ltf_search_for_transients.py
     ltf_search_for_transients_path = which("ltf_search_for_transients.py")
 
     fit_file_path = ",".join([os.path.join(workdir, "data_ft1.fit"), os.path.join(workdir, "data_ft2.fit")])
-    print(fit_file_path)
+
+    logger.info("Running ltf_search_for_transients with data stored at: %s" % fit_file_path)
+
     ltf_search_cmd_line = ('%s --inp_fts %s --config %s --outfile %s --logfile %s --workdir %s' %
                            (ltf_search_for_transients_path,
                             fit_file_path, configuration.config_file, outfile, logfile, workdir))
-    print(ltf_search_cmd_line)
+
+    logger.info("ltf_search_for_transients command line: %s" % ltf_search_cmd_line)
+
 
     try:
         # call ltf_seach_for_transients
@@ -83,14 +94,16 @@ def run_ltf_search(workdir, outfile, logfile):
     return
 
 
-def process_results(outfile, config_path):
+def process_results(outfile, config_path, logger):
 
+    logger.log("Processing results stored at %s" % outfile)
     # get path to ltf_send_results_email
     results_path = which("ltf_process_search_results.py")
 
     # format the command
     send_results_cmd_line = ("%s --results %s --config %s" % (results_path, outfile, config_path))
-    print(send_results_cmd_line)
+
+    logger.log("process results command line: %s" % send_results_cmd_line)
 
     # execute
     subprocess.check_call(send_results_cmd_line, shell=True)
@@ -109,12 +122,23 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # set up logging
+    logger = myLogging.log.getLogger("ltf_rerun_analysis")
+
+    # Now overwrite stdout and stderr so they will go to the logger
+    sl = myLogging.StreamToLogger(logger, myLogging.log.DEBUG)
+    sys.stdout = sl
+
+    sl = myLogging.StreamToLogger(logger, myLogging.log.ERROR)
+    sys.stderr = sl
+
+    logger.debug("Arguments: %s" % (args.__dict__))
+
     # get the configuration object
     configuration = args.config
 
     # get the base path
     base_path = configuration.get("Real time", "base_path")
-    print("Base Path: %s" % base_path)
 
     # get the start and duration
     met_start = args.met_start
@@ -126,7 +150,8 @@ if __name__ == "__main__":
     # get the directory for this analysis
     analysis_path = os.path.abspath(os.path.expandvars(os.path.expanduser(base_path + "/" + str(met_start) + "_" +
                                                                           str(duration))))
-    print("analysis path: %s" % analysis_path)
+
+    logger.info("Results and log files for this analysis will be stored at %s" % analysis_path)
 
     # if the directory does not exist, create it
     make_dir_if_not_exist(analysis_path)
@@ -137,16 +162,23 @@ if __name__ == "__main__":
         unique_id = os.environ.get("LSB_JOBID")
 
         workdir = os.path.join('/scratch', unique_id)
+
+        logger.info("We are at SLAC, the work directory is: %s" % workdir)
     elif at_slac == "False":
         unique_id = os.environ.get("PBS_JOBID").split(".")[0]
 
         # os.path.join joins two path in a system-independent way
         workdir = os.path.join('/dev/shm', unique_id)
+
+        logger.info("We are at Stanford, the work directory is: %s" % workdir)
     else:
         workdir = os.path.join(analysis_path, "data")
 
-    print("work directory: %s" % workdir)
-    print("starting counts check")
+        logger.info("The at_slac value in the configuration file is not True or False, so we don't know if we are at "
+                    "Stanford or SLAC, please change the configuration value. In the meantime, the work directory will "
+                    "be set to: %s" % workdir)
+
+    logger.info("Making the work directory and setting up paths for out and log files")
 
     # make a directory to store data from mcdget (if we fetch data)
     make_dir_if_not_exist(workdir)
@@ -161,23 +193,25 @@ if __name__ == "__main__":
 
     ssh_host = configuration.get("Remote access", "ssh_host")
 
-    if check_new_data(met_start, met_stop, args.counts, ssh_host):
+    logger.log("Checking if the counts of the analysis have changed")
+
+    if check_new_data(met_start, met_stop, args.counts, ssh_host, logger):
+        logger.log("There is new data for this analysis so we continue with the analysis")
 
         try:
 
             with database_connection(configuration):
-
+                logger.log("Database connection established")
                 # there is new data! so we rerun the analysis
-                print("We need to rerun the analysis, fetching data...")
+
                 # first actually fetch the data we will use as a single file
-                get_data(workdir, met_start, met_stop, configuration)
-                print("finished getting data, about to start search")
+                get_data(workdir, met_start, met_stop, configuration, logger)
 
                 # run ltf_search_for_transients
-                run_ltf_search(workdir, outfile, logfile)
+                run_ltf_search(workdir, outfile, logfile, logger)
 
                 # check results against candidates we have already found and send emails
-                process_results(outfile, configuration.config_file)
+                process_results(outfile, configuration.config_file, logger)
 
         except:
 
@@ -196,5 +230,16 @@ if __name__ == "__main__":
             try:
                 shutil.rmtree(workdir)
             except:
-                print("Could not remove data directory %s " % workdir)
+                logger.error("Could not remove data directory %s " % workdir)
                 raise
+    else:
+        logger.log("There is no new data for this analysis, ending the analysis now")
+        # move back to where we were
+        os.chdir(cwd)
+
+        # clean up data directory
+        try:
+            shutil.rmtree(workdir)
+        except:
+            logger.error("Could not remove data directory %s " % workdir)
+            raise

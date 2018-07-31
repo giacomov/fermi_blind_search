@@ -1,13 +1,23 @@
 #!/usr/bin/env python
 from contextlib import contextmanager
 import argparse
-
+import sys
 import sshtunnel
 from sqlalchemy import *
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from fermi_blind_search.configuration import get_config
+from fermi_blind_search import myLogging
+
+_logger = myLogging.log.getLogger("database")
+
+# Now overwrite stdout and stderr so they will go to the logger
+sl = myLogging.StreamToLogger(_logger, myLogging.log.DEBUG)
+sys.stdout = sl
+
+sl = myLogging.StreamToLogger(_logger, myLogging.log.ERROR)
+sys.stderr = sl
 
 
 # will store the engine that will connect to the database
@@ -74,6 +84,7 @@ class Database(object):
         global Base
         global Session
         global _engine
+        global _logger
 
         # initialize the engine using parameters from the config file
         if config.get("Real time", "is_sqlite") == "True":
@@ -82,6 +93,8 @@ class Database(object):
             engine_url = config.get("Real time", "db_dialect") + "://" + config.get("Real time", "db_username") + ":" + \
                          config.get("Real time", "db_password") + "@" + config.get("Real time", "db_host") + ":" + \
                          config.get("Real time", "db_port") + "/" + config.get("Real time", "db_path")
+
+        _logger.debug("Database engine URL: %s" % engine_url)
         _engine = create_engine(engine_url)
 
         # bind the engine to the Base
@@ -94,10 +107,16 @@ class Database(object):
 
     def create_tables(self):
 
+        global _logger
+
         # create the Analysis and Results tables
         Base.metadata.create_all(_engine)
 
+        _logger.info("Successfully created database tables")
+
     def delete_analysis_table(self):
+
+        global _logger
 
         # drop the table from the DB
         try:
@@ -107,8 +126,10 @@ class Database(object):
                 # another way to drop the table
                 Analysis.__table__.drop(_engine)
             except:
-                print('ERROR: Could not delete Analysis Table')
+                _logger.error('ERROR: Could not delete Analysis Table')
                 raise
+        else:
+            _logger.info("Successfully deleted Analysis table")
 
 
     def delete_results_table(self):
@@ -121,8 +142,10 @@ class Database(object):
                 # another way to drop the table
                 Results.__table__.drop(_engine)
             except:
-                print('ERROR: Could not delete Results Table')
+                _logger.error('ERROR: Could not delete Results Table')
                 raise
+        else:
+            _logger.info("Successfully delete Results table")
 
     def add_analysis(self, analysis_vals):
         # TODO: which check that analysis_vals contains the correct field?
@@ -142,8 +165,9 @@ class Database(object):
             new_analysis = Analysis(met_start=analysis_vals['met_start'], duration=analysis_vals['duration'],
                                     counts=analysis_vals['counts'], outfile=analysis_vals['outfile'],
                                     logfile=analysis_vals['logfile'])
+            _logger.info("Adding this Analysis to the database: %s" % new_analysis)
         except KeyError:
-            print('ERROR: The analysis you want to add does not have the proper fields!')
+            _logger.error('ERROR: The analysis you want to add does not have the proper fields!')
             raise
         except:
             raise
@@ -155,8 +179,12 @@ class Database(object):
                 session.commit()
             except:
                 raise
+            else:
+                _logger.debug("Successfully added analysis to db")
 
     def update_analysis_counts(self, met_start, duration, new_counts):
+
+        global _logger
 
         # open a session with the DB
         session = Session()
@@ -165,20 +193,29 @@ class Database(object):
         results = session.query(Analysis).filter(Analysis.met_start == met_start).filter(Analysis.duration == duration).all()
 
         # check that there is only one analysis that matches these parameters
-        print("len of results matching query: %s" % len(results))
-        assert len(results) == 1, 'More than one analysis exists with these parameters!'
+
+        assert len(results) == 1, 'More than one analysis exists with these parameters! This should never happen'
 
         analysis = results[0]
+
+        _logger.info("Updating this analysis: %s to have %s counts" % (analysis, new_counts))
 
         # update the counts column of the analysis in question
         analysis.counts = new_counts
 
-        # commit the change
-        session.commit()
+        try:
+            # commit the change
+            session.commit()
+        except:
+            raise
+        else:
+            _logger.debug("Successfully updated analysis")
 
     def add_candidate(self, candidate_vals):
         # TODO: which check that condidate_vals contains the correct field?
         # TODO: do we want to add a check that the candidate doesn't already exist?
+
+        global _logger
 
         assert (candidate_vals['ra'] is not None and candidate_vals['dec'] is not None and
                 candidate_vals['met_start'] is not None and candidate_vals['interval'] is not None and
@@ -191,8 +228,9 @@ class Database(object):
             new_candidate = Results(ra=candidate_vals['ra'], dec=candidate_vals['dec'],
                                     met_start=candidate_vals['met_start'], interval=candidate_vals['interval'],
                                     email=candidate_vals['email'])
+            _logger.info("Adding this result to the database %s" % new_candidate)
         except KeyError:
-            print('ERROR: The result you want to add does not have the proper fields')
+            _logger.error('ERROR: The result you want to add does not have the proper fields')
             raise
         except:
             raise
@@ -200,9 +238,18 @@ class Database(object):
             # open a session, add the result to the table, close the session
             session = Session()
             session.add(new_candidate)
-            session.commit()
+            try:
+                session.commit()
+            except:
+                raise
+            else:
+                _logger.debug("Successfully added result to database")
 
     def get_analysis_between_times(self, start, stop):
+
+        global _logger
+
+        _logger.info("Fetching analyses using data between %s and %s" % (start, stop))
 
         # open a session
         session = Session()
@@ -214,6 +261,10 @@ class Database(object):
 
     def get_exact_analysis(self, start, stop):
 
+        global _logger
+
+        _logger.info("Fetching analysis with met_start = %s and met_start + duration = %s" % (start, stop))
+
         # open a session
         session = Session()
 
@@ -222,6 +273,8 @@ class Database(object):
                                                    Analysis.met_start + Analysis.duration == stop)).all()
 
     def get_results(self, candidate_vals):
+
+        global _logger
 
         # check that candidate vals has the correct fields to perform a search
         assert (candidate_vals['ra'] is not None and candidate_vals['dec'] is not None and
@@ -238,6 +291,9 @@ class Database(object):
         start_tol = float(self._config.get("Real time", "start_tol"))
         int_tol = float(self._config.get("Real time", "int_tol"))
 
+        _logger.info("Fetching results within %s of ra, %s of dec, %s of met_start, and %s of interval of %s" %
+                     (ra_tol, dec_tol, start_tol, int_tol, candidate_vals))
+
         # get all results that match the passed candidate within a certain tolerance
         return session.query(Results).filter(and_(candidate_vals['ra'] - ra_tol <= Results.ra,
                                                   Results.ra <= candidate_vals['ra'] + ra_tol,
@@ -250,6 +306,10 @@ class Database(object):
 
     def get_results_to_email(self):
 
+        global _logger
+
+        _logger.info("Fetching results with email = False (0 in database)")
+
         # open a session
         session = Session()
 
@@ -258,16 +318,29 @@ class Database(object):
 
     def update_result_email(self, candidate, email_val=False):
 
+        global _logger
+
+        _logger.info("Updating result: %s to have email value: %s" % (candidate, email_val))
+
         # open a session
         session = Session()
 
         # update the value of the candidate
         candidate.email = email_val
 
-        # commit the change
-        session.commit()
+        try:
+            # commit the change
+            session.commit()
+        except:
+            raise
+        else:
+            _logger.debug("Successfully updated result")
 
     def close(self):
+
+        global _logger
+
+        _logger.info("Closing database")
 
         Session.close_all()
 
