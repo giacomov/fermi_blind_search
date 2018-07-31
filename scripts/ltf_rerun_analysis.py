@@ -19,6 +19,7 @@ from fermi_blind_search.make_directory import make_dir_if_not_exist
 from fermi_blind_search import myLogging
 
 
+
 def check_new_data(met_start, met_stop, counts, ssh_host, logger):
 
     logger.info("Checking if there is new data for the analysis with the parameters: met_start: %s met_stop: %s, "
@@ -119,11 +120,20 @@ if __name__ == "__main__":
     parser.add_argument('--outfile', help='Path to the outfile', type=str, required=True)
     parser.add_argument('--logfile', help='Path to the logfile', type=str, required=True)
     parser.add_argument('--config', help='Path to config file', type=get_config, required=True)
+    parser.add_argument('--debug', help='Activate debugging messages', action='store_true', default=False)
 
     args = parser.parse_args()
 
     # set up logging
     logger = myLogging.log.getLogger("ltf_rerun_analysis")
+
+    if args.debug:
+
+        myLogging.setLevel("DEBUG")
+
+    else:
+
+        myLogging.setLevel("INFO")
 
     logger.debug("Arguments: %s" % (args.__dict__))
 
