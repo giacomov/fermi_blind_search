@@ -68,6 +68,12 @@ farm_command = qsub -l nodes=1:ppn=$NUM_CPUS -j oe -o $FARM_LOG_PATH -F ' --met_
 # path to where to store results
 base_path = ./real_time_work
 
+[SSH db tunnel]
+# Username to be used for connecting to the database host
+username = 
+# Directory containing the SSH key
+key_directory = 
+
 [Results email]
 # Host server and port number for sending emails
 host = ''

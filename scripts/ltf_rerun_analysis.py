@@ -10,6 +10,7 @@ import astropy.io.fits as pyfits
 import shutil
 import traceback
 import sys
+import sshtunnel
 
 from fermi_blind_search.configuration import get_config
 from fermi_blind_search.which import which
@@ -161,23 +162,39 @@ if __name__ == "__main__":
     ssh_host = configuration.get("Remote access", "ssh_host")
 
     if check_new_data(met_start, met_stop, args.counts, ssh_host):
+
         try:
-            # there is new data! so we rerun the analysis
-            print("We need to rerun the analysis, fetching data...")
-            # first actually fetch the data we will use as a single file
-            get_data(workdir, met_start, met_stop, configuration)
-            print("finished getting data, about to start search")
 
-            # run ltf_search_for_transients
-            run_ltf_search(workdir, outfile, logfile)
+            with sshtunnel.SSHTunnelForwarder(configuration.get("Real time", "db_host"),
+                                              ssh_username=configuration.get("SSH db tunnel", "username"),
+                                              host_pkey_directories=configuration.get("SSH db tunnel", "key_directory"),
+                                              remote_bind_address=('127.0.0.1',
+                                                                   configuration.get("Real time", "db_port")),
+                                              local_bind_address=('0.0.0.0',
+                                                                  configuration.get("Real time", "db_port"))
+                                              ) as tunnel:
 
-            # check results against candidates we have already found and send emails
-            process_results(outfile, configuration.config_file)
+                # there is new data! so we rerun the analysis
+                print("We need to rerun the analysis, fetching data...")
+                # first actually fetch the data we will use as a single file
+                get_data(workdir, met_start, met_stop, configuration)
+                print("finished getting data, about to start search")
+
+                # run ltf_search_for_transients
+                run_ltf_search(workdir, outfile, logfile)
+
+                # check results against candidates we have already found and send emails
+                process_results(outfile, configuration.config_file)
+
         except:
+
             traceback.print_exc(sys.stdout)
+
         else:
+
             shutil.copy2(outfile, analysis_path)
             shutil.copy2(logfile, analysis_path)
+
         finally:
             # move back to where we were
             os.chdir(cwd)
