@@ -2,7 +2,6 @@
 
 #PBS -l walltime=04:00:00
 #PBS -l vmem=30gb
-#PBS -V
 
 import argparse
 import os
