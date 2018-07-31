@@ -21,28 +21,50 @@ Session = sessionmaker()
 
 
 @contextmanager
-def database_connection(configuration):
+def database_connection(config):
 
-    if configuration.get("SSH db tunnel", "remote_host") != '':
+    if config.get("SSH db tunnel", "remote_host") != '':
 
-        with sshtunnel.SSHTunnelForwarder(configuration.get("SSH db tunnel", "remote_host"),
-                                          ssh_username=configuration.get("SSH db tunnel", "username"),
+        with sshtunnel.SSHTunnelForwarder(config.get("SSH db tunnel", "remote_host"),
+                                          ssh_username=config.get("SSH db tunnel", "username"),
                                           host_pkey_directories=[
-                                              configuration.get("SSH db tunnel", "key_directory")],
+                                              config.get("SSH db tunnel", "key_directory")],
                                           remote_bind_address=('127.0.0.1',
-                                                               int(configuration.get("SSH db tunnel",
-                                                                                     "tunnel_port"))),
+                                                               int(config.get("SSH db tunnel", "tunnel_port"))),
                                           local_bind_address=('localhost',
-                                                              int(configuration.get('Real time', 'db_port'))),
+                                                              int(config.get('Real time', 'db_port'))),
 
-                                          ) as tunnel:
+                                          ):
 
-            yield tunnel
+            db_instance = Database(config)
+
+            try:
+
+                yield db_instance
+
+            except:
+
+                raise
+
+            finally:
+
+                db_instance.close()
 
     else:
 
-        yield None
+        db_instance = Database(config)
 
+        try:
+
+            yield db_instance
+
+        except:
+
+            raise
+
+        finally:
+
+            db_instance.close()
 
 
 class Database(object):
@@ -244,6 +266,10 @@ class Database(object):
 
         # commit the change
         session.commit()
+
+    def close(self):
+
+        Session.close_all()
 
 
 class Analysis(Base):
