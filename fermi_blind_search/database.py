@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import argparse
-
 from sqlalchemy import *
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -19,7 +18,7 @@ Base = declarative_base()
 Session = sessionmaker()
 
 
-class Database:
+class Database(object):
 
     def __init__(self, config):
 
@@ -42,7 +41,7 @@ class Database:
         # bind the engine to the session
         Session.configure(bind=_engine)
 
-        self.config = config
+        self._config = config
 
     def create_tables(self):
 
@@ -185,10 +184,10 @@ class Database:
         session = Session()
 
         # get the tolerance ranges for determining if we have a match
-        ra_tol = float(self.config.get("Real time", "ra_tol"))
-        dec_tol = float(self.config.get("Real time", "dec_tol"))
-        start_tol = float(self.config.get("Real time", "start_tol"))
-        int_tol = float(self.config.get("Real time", "int_tol"))
+        ra_tol = float(self._config.get("Real time", "ra_tol"))
+        dec_tol = float(self._config.get("Real time", "dec_tol"))
+        start_tol = float(self._config.get("Real time", "start_tol"))
+        int_tol = float(self._config.get("Real time", "int_tol"))
 
         # get all results that match the passed candidate within a certain tolerance
         return session.query(Results).filter(and_(candidate_vals['ra'] - ra_tol <= Results.ra,
