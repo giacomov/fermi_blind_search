@@ -10,11 +10,11 @@ import astropy.io.fits as pyfits
 import shutil
 import traceback
 import sys
-import sshtunnel
+
 
 from fermi_blind_search.configuration import get_config
 from fermi_blind_search.which import which
-from fermi_blind_search.database import Database
+from fermi_blind_search.database import Database, database_connection
 from fermi_blind_search.make_directory import make_dir_if_not_exist
 
 
@@ -165,17 +165,7 @@ if __name__ == "__main__":
 
         try:
 
-            with sshtunnel.SSHTunnelForwarder(configuration.get("SSH db tunnel", "remote_host"),
-                                              ssh_username=configuration.get("SSH db tunnel", "username"),
-                                              host_pkey_directories=[
-                                                  configuration.get("SSH db tunnel", "key_directory")],
-                                              remote_bind_address=('127.0.0.1',
-                                                                   int(configuration.get("SSH db tunnel",
-                                                                                         "tunnel_port"))),
-                                              local_bind_address=('localhost',
-                                                                  int(configuration.get('Real time', 'db_port'))),
-
-                                              ) as tunnel:
+            with database_connection(configuration):
 
                 # there is new data! so we rerun the analysis
                 print("We need to rerun the analysis, fetching data...")

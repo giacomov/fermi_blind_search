@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-
+from contextlib import contextmanager
 import argparse
+
+import sshtunnel
 from sqlalchemy import *
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -16,6 +18,31 @@ Base = declarative_base()
 
 # defines the class that will connect to the database
 Session = sessionmaker()
+
+
+@contextmanager
+def database_connection(configuration):
+
+    if configuration.get("SSH db tunnel", "remote_host") != '':
+
+        with sshtunnel.SSHTunnelForwarder(configuration.get("SSH db tunnel", "remote_host"),
+                                          ssh_username=configuration.get("SSH db tunnel", "username"),
+                                          host_pkey_directories=[
+                                              configuration.get("SSH db tunnel", "key_directory")],
+                                          remote_bind_address=('127.0.0.1',
+                                                               int(configuration.get("SSH db tunnel",
+                                                                                     "tunnel_port"))),
+                                          local_bind_address=('localhost',
+                                                              int(configuration.get('Real time', 'db_port'))),
+
+                                          ) as tunnel:
+
+            yield tunnel
+
+    else:
+
+        yield None
+
 
 
 class Database(object):

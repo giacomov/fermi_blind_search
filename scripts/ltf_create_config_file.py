@@ -72,7 +72,7 @@ farm_command = qsub -l nodes=1:ppn=$NUM_CPUS -j oe -o $FARM_LOG_PATH -F ' --met_
 base_path = ./real_time_work
 
 [SSH db tunnel]
-# IP of the remote host to open the tunnel with
+# IP of the remote host to open the tunnel with. If this is empty, no SSH tunnel will be used
 remote_host = 
 # Username to be used for connecting to the database host
 username = 
