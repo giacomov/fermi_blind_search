@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-
+from contextlib import contextmanager
 import argparse
 
+import sshtunnel
 from sqlalchemy import *
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -19,7 +20,54 @@ Base = declarative_base()
 Session = sessionmaker()
 
 
-class Database:
+@contextmanager
+def database_connection(config):
+
+    if config.get("SSH db tunnel", "remote_host") != '':
+
+        with sshtunnel.SSHTunnelForwarder(config.get("SSH db tunnel", "remote_host"),
+                                          ssh_username=config.get("SSH db tunnel", "username"),
+                                          host_pkey_directories=[
+                                              config.get("SSH db tunnel", "key_directory")],
+                                          remote_bind_address=('127.0.0.1',
+                                                               int(config.get("SSH db tunnel", "tunnel_port"))),
+                                          local_bind_address=('localhost',
+                                                              int(config.get('Real time', 'db_port'))),
+
+                                          ):
+
+            db_instance = Database(config)
+
+            try:
+
+                yield db_instance
+
+            except:
+
+                raise
+
+            finally:
+
+                db_instance.close()
+
+    else:
+
+        db_instance = Database(config)
+
+        try:
+
+            yield db_instance
+
+        except:
+
+            raise
+
+        finally:
+
+            db_instance.close()
+
+
+class Database(object):
 
     def __init__(self, config):
 
@@ -42,7 +90,7 @@ class Database:
         # bind the engine to the session
         Session.configure(bind=_engine)
 
-        self.config = config
+        self._config = config
 
     def create_tables(self):
 
@@ -185,10 +233,10 @@ class Database:
         session = Session()
 
         # get the tolerance ranges for determining if we have a match
-        ra_tol = float(self.config.get("Real time", "ra_tol"))
-        dec_tol = float(self.config.get("Real time", "dec_tol"))
-        start_tol = float(self.config.get("Real time", "start_tol"))
-        int_tol = float(self.config.get("Real time", "int_tol"))
+        ra_tol = float(self._config.get("Real time", "ra_tol"))
+        dec_tol = float(self._config.get("Real time", "dec_tol"))
+        start_tol = float(self._config.get("Real time", "start_tol"))
+        int_tol = float(self._config.get("Real time", "int_tol"))
 
         # get all results that match the passed candidate within a certain tolerance
         return session.query(Results).filter(and_(candidate_vals['ra'] - ra_tol <= Results.ra,
@@ -218,6 +266,10 @@ class Database:
 
         # commit the change
         session.commit()
+
+    def close(self):
+
+        Session.close_all()
 
 
 class Analysis(Base):

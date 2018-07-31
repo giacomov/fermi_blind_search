@@ -42,10 +42,13 @@ cluster_distance = 15.0
 is_sqlite = False
 
 # if not using sqlite, need this info
-db_dialect = mysql
+db_dialect = mysql+pymysql
 db_username = 
 db_password = 
+# IP of the host of the DB. Note that if the SSH tunnel is being used, this should be localhost, i.e.,
+# 127.0.0.1
 db_host = localhost
+# If the SSH tunnel is being used, this is the local port, otherwise this is the usual Mysql port (most likely)
 db_port = 3306
 
 # regardless of database driver, need to know where to store the db!
@@ -67,6 +70,17 @@ farm_command = qsub -l nodes=1:ppn=$NUM_CPUS -j oe -o $FARM_LOG_PATH -F ' --met_
 
 # path to where to store results
 base_path = ./real_time_work
+
+[SSH db tunnel]
+# IP of the remote host to open the tunnel with. If this is empty, no SSH tunnel will be used
+remote_host = 
+# Username to be used for connecting to the database host
+username = 
+# Directory containing the SSH key
+key_directory = 
+# Port to open the tunnel to (usually the mysql port)
+tunnel_port =
+
 
 [Results email]
 # Host server and port number for sending emails

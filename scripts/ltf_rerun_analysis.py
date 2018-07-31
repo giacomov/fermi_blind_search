@@ -11,9 +11,10 @@ import shutil
 import traceback
 import sys
 
+
 from fermi_blind_search.configuration import get_config
 from fermi_blind_search.which import which
-from fermi_blind_search.database import Database
+from fermi_blind_search.database import Database, database_connection
 from fermi_blind_search.make_directory import make_dir_if_not_exist
 
 
@@ -161,24 +162,32 @@ if __name__ == "__main__":
     ssh_host = configuration.get("Remote access", "ssh_host")
 
     if check_new_data(met_start, met_stop, args.counts, ssh_host):
+
         try:
-            # there is new data! so we rerun the analysis
-            print("We need to rerun the analysis, fetching data...")
-            # first actually fetch the data we will use as a single file
-            get_data(workdir, met_start, met_stop, configuration)
-            print("finished getting data, about to start search")
 
-            # run ltf_search_for_transients
-            run_ltf_search(workdir, outfile, logfile)
+            with database_connection(configuration):
 
-            # check results against candidates we have already found and send emails
-            process_results(outfile, configuration.config_file)
+                # there is new data! so we rerun the analysis
+                print("We need to rerun the analysis, fetching data...")
+                # first actually fetch the data we will use as a single file
+                get_data(workdir, met_start, met_stop, configuration)
+                print("finished getting data, about to start search")
+
+                # run ltf_search_for_transients
+                run_ltf_search(workdir, outfile, logfile)
+
+                # check results against candidates we have already found and send emails
+                process_results(outfile, configuration.config_file)
+
         except:
+
             traceback.print_exc(sys.stdout)
 
         else:
+
             shutil.copy2(outfile, analysis_path)
             shutil.copy2(logfile, analysis_path)
+
         finally:
             # move back to where we were
             os.chdir(cwd)
