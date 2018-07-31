@@ -42,7 +42,7 @@ cluster_distance = 15.0
 is_sqlite = False
 
 # if not using sqlite, need this info
-db_dialect = mysql+mysqldb
+db_dialect = mysql+pymysql
 db_username = 
 db_password = 
 # IP of the host of the DB. Note that if the SSH tunnel is being used, this should be localhost, i.e.,

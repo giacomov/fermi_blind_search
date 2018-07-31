@@ -34,7 +34,7 @@ setup(
             'pyyaml',
             'fitsio',
             'sqlalchemy',
-            'mysql-python',
+            'pymsql',
             'sshtunnel'
         ]
 )
