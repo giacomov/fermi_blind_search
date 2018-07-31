@@ -165,13 +165,16 @@ if __name__ == "__main__":
 
         try:
 
-            with sshtunnel.SSHTunnelForwarder(configuration.get("Real time", "db_host"),
+            with sshtunnel.SSHTunnelForwarder(configuration.get("SSH db tunnel", "remote_host"),
                                               ssh_username=configuration.get("SSH db tunnel", "username"),
-                                              host_pkey_directories=configuration.get("SSH db tunnel", "key_directory"),
+                                              host_pkey_directories=[
+                                                  configuration.get("SSH db tunnel", "key_directory")],
                                               remote_bind_address=('127.0.0.1',
-                                                                   configuration.get("Real time", "db_port")),
-                                              local_bind_address=('0.0.0.0',
-                                                                  configuration.get("Real time", "db_port"))
+                                                                   int(configuration.get("SSH db tunnel",
+                                                                                         "tunnel_port"))),
+                                              local_bind_address=('localhost',
+                                                                  int(configuration.get('Real time', 'db_port'))),
+
                                               ) as tunnel:
 
                 # there is new data! so we rerun the analysis
