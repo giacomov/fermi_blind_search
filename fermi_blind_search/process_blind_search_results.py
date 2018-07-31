@@ -1,6 +1,7 @@
 import numpy as np
 
-from fermi_blind_search.database import Database
+from fermi_blind_search.database import Database, database_connection
+
 
 def read_results(filename):
 
@@ -111,13 +112,14 @@ def already_in_db(block_dict, ra, dec, config):
                       'email': False}
 
     # establish db connection
-    db = Database(config)
+    with database_connection(config):
+        db = Database(config)
 
-    # get any transients that match ours
-    matches = db.get_results(new_block_dict)
+        # get any transients that match ours
+        matches = db.get_results(new_block_dict)
 
-    if len(matches) == 0:
-        # add the candidate to the database
-        db.add_candidate(new_block_dict)
+        if len(matches) == 0:
+            # add the candidate to the database
+            db.add_candidate(new_block_dict)
 
-    return len(matches) > 0
+        return len(matches) > 0

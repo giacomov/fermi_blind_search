@@ -5,7 +5,7 @@ import subprocess
 import os
 
 from fermi_blind_search.configuration import get_config
-from fermi_blind_search.database import Database
+from fermi_blind_search.database import Database, database_connection
 from fermi_blind_search.which import which
 from myDataCatalog import DB
 from fermi_blind_search.make_directory import make_dir_if_not_exist
@@ -59,8 +59,7 @@ if __name__ == "__main__":
     start_rerun_interval = int(configuration.get("Real time", "start_interval")) * 3600
     end_rerun_interval = int(configuration.get("Real time", "end_interval")) * 3600
 
-    # start a connection with the database storing analysis and transient candidates
-    real_time_db = Database(configuration)
+
 
     if args.test_time is None:
         # get the time of the most recent event
@@ -78,42 +77,46 @@ if __name__ == "__main__":
     print("Fetching all analyses that were run using data from %s to %s" %
           (most_recent_event_time - start_rerun_interval, most_recent_event_time - end_rerun_interval - 1))
 
-    # fetch all analyses that were run using data from the interval we wish to rerun
-    # subtract an extra 1 from the second time bc get_analysis_between_times is inclusive, and we separately run
-    # analysis of the the analysis from most_recent_event_time - end_rerun_interval to most_recent_event_time
-    analyses_to_run = real_time_db.get_analysis_between_times(most_recent_event_time - start_rerun_interval,
-                                                              most_recent_event_time - end_rerun_interval - 1)
+    # start a connection with the database storing analysis and transient candidates
+    with database_connection(configuration):
+        real_time_db = Database(configuration)
 
-    # get the path to ltf_rerun_analysis.py
-    rerun_analysis_path = which("ltf_rerun_analysis.py")
+        # fetch all analyses that were run using data from the interval we wish to rerun
+        # subtract an extra 1 from the second time bc get_analysis_between_times is inclusive, and we separately run
+        # analysis of the the analysis from most_recent_event_time - end_rerun_interval to most_recent_event_time
+        analyses_to_run = real_time_db.get_analysis_between_times(most_recent_event_time - start_rerun_interval,
+                                                                  most_recent_event_time - end_rerun_interval - 1)
 
-    for row in analyses_to_run:
-        print(row)
-        # start a job on the farm that runs ltf_rerun_analysis.py
-        rerun_analysis(rerun_analysis_path, row.met_start, row.duration, row.counts, row.outfile,
-                       row.logfile, configuration)
+        # get the path to ltf_rerun_analysis.py
+        rerun_analysis_path = which("ltf_rerun_analysis.py")
 
-    print("finished reruning past analyses, getting the most recent analysis")
-    # run an analysis from most_recent_event_time - end_rerun_interval to most_recent_event
+        for row in analyses_to_run:
+            print(row)
+            # start a job on the farm that runs ltf_rerun_analysis.py
+            rerun_analysis(rerun_analysis_path, row.met_start, row.duration, row.counts, row.outfile,
+                           row.logfile, configuration)
 
-    # check if the same analysis has already been run
-    most_recent_analysis = real_time_db.get_exact_analysis(most_recent_event_time - end_rerun_interval,
-                                                           most_recent_event_time)
-    if len(most_recent_analysis) == 0:
-        # this analysis will be run for the first time
+        print("finished reruning past analyses, getting the most recent analysis")
+        # run an analysis from most_recent_event_time - end_rerun_interval to most_recent_event
 
-        # add the analysis to the database with 0 as counts (will be replaced when the analysis is actually run)
-        print("adding analysis to database")
-        analysis_vals = {'met_start': most_recent_event_time - end_rerun_interval, 'duration': end_rerun_interval,
-                         'counts': 0, 'outfile': "out.txt", 'logfile': "log.txt"}
-        real_time_db.add_analysis(analysis_vals)
+        # check if the same analysis has already been run
+        most_recent_analysis = real_time_db.get_exact_analysis(most_recent_event_time - end_rerun_interval,
+                                                               most_recent_event_time)
+        if len(most_recent_analysis) == 0:
+            # this analysis will be run for the first time
 
-        # run the analysis
-        rerun_analysis(rerun_analysis_path, most_recent_event_time - end_rerun_interval, end_rerun_interval, 0,
-                       "out.txt", "log.txt", configuration)
-    else:
-        # TODO: Add check that there is only one results returned??
-        # this analysis has been run before so we want to rerun it with the same parameters
-        row = most_recent_analysis[0]
-        rerun_analysis(rerun_analysis_path, row.met_start, row.duration, row.counts, row.outfile, row.logfile,
-                       configuration)
+            # add the analysis to the database with 0 as counts (will be replaced when the analysis is actually run)
+            print("adding analysis to database")
+            analysis_vals = {'met_start': most_recent_event_time - end_rerun_interval, 'duration': end_rerun_interval,
+                             'counts': 0, 'outfile': "out.txt", 'logfile': "log.txt"}
+            real_time_db.add_analysis(analysis_vals)
+
+            # run the analysis
+            rerun_analysis(rerun_analysis_path, most_recent_event_time - end_rerun_interval, end_rerun_interval, 0,
+                           "out.txt", "log.txt", configuration)
+        else:
+            # TODO: Add check that there is only one results returned??
+            # this analysis has been run before so we want to rerun it with the same parameters
+            row = most_recent_analysis[0]
+            rerun_analysis(rerun_analysis_path, row.met_start, row.duration, row.counts, row.outfile, row.logfile,
+                           configuration)
