@@ -17,7 +17,7 @@ from fermi_blind_search.database import Database
 from fermi_blind_search.make_directory import make_dir_if_not_exist
 
 
-def check_new_data(met_start, met_stop, counts, ssh_host, source_path):
+def check_new_data(met_start, met_stop, counts, ssh_host):
 
     try:
         # call mdcget with --count to just return the counts in the time range
@@ -159,9 +159,8 @@ if __name__ == "__main__":
     os.chdir(workdir)
 
     ssh_host = configuration.get("Remote access", "ssh_host")
-    source_path = configuration.get("Remote access", "source_path")
 
-    if check_new_data(met_start, met_stop, args.counts, ssh_host, source_path):
+    if check_new_data(met_start, met_stop, args.counts, ssh_host):
         try:
             # there is new data! so we rerun the analysis
             print("We need to rerun the analysis, fetching data...")
