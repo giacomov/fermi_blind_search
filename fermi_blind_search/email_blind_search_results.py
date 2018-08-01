@@ -1,9 +1,7 @@
-import smtplib
-import sys
 
 from fermi_blind_search.database import Database, database_connection
-from email.mime.text import MIMEText
 from fermi_blind_search import myLogging
+from fermi_blind_search.send_email import send_email
 
 _logger = myLogging.log.getLogger("process_blind_search_results")
 
@@ -50,33 +48,22 @@ def query_db_and_send_emails(config):
         if len(blocks_to_email) == 0:
             _logger.info("No emails to send, terminating...")
 
-
         for block in blocks_to_email:
-            # open the smtp email server
-            server = smtplib.SMTP(config.get("Results email", "host"),
-                                  port=int(config.get("Results email", "port")))
+
             # format the body of the email
             email_body = format_email(block)
 
-            recipients = config.get("Results email", "recipient").split(",")
-
-            # create a MIME object so that the email send correctly
-            msg = MIMEText(email_body)
-            msg['From'] = config.get("Results email", "username")
-            msg['To'] = ", ".join(recipients)
-            msg['Subject'] = config.get("Results email", "subject")
-
             # send the email
             try:
-                server.sendmail(config.get("Results email", "username"), recipients, msg.as_string())
+                send_email(config.get("Results email", "host"), config.get("Results email", "port"),
+                           config.get("Results email", "username"), config.get("Results email", "recipient"),
+                           email_body, config.get("Results email", "subject"))
             except:
                 raise
             else:
                 # if the email has sent, update the database
                 db.update_result_email(block, email_val=True)
                 _logger.debug("Successfully updated the database")
-            finally:
-                del msg
 
 
 def query_db_and_write(config, write_path):
