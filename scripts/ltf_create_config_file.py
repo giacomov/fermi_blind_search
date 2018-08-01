@@ -82,10 +82,15 @@ key_directory =
 tunnel_port =
 
 
-[Results email]
+[Email]
 # Host server and port number for sending emails
 host = ''
 port = 0
+# Set this only if you want to use a SSH tunnel to send emails
+ssh_tunnel_host = 
+ssh_tunnel_port =
+ssh_tunnel_username =
+ssh_tunnel_key_directory =
 
 # Login credentials for sending emails
 username = ''

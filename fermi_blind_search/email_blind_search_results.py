@@ -55,9 +55,10 @@ def query_db_and_send_emails(config):
 
             # send the email
             try:
-                send_email(config.get("Results email", "host"), config.get("Results email", "port"),
-                           config.get("Results email", "username"), config.get("Results email", "recipient"),
-                           email_body, config.get("Results email", "subject"))
+                send_email(config.get("Email", "host"), config.get("Email", "port"),
+                           config.get("Email", "username"), config.get("Email", "recipient"),
+                           config.get("Email", "username"), config.get("Email", "recipient"),
+                           email_body, config.get("Email", "subject"))
             except:
                 raise
             else:
