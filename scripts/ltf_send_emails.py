@@ -14,10 +14,19 @@ if __name__ == "__main__":
     parser.add_argument('--email', help='If active send email', action="store_true")
     parser.add_argument('--write_path', help='Path to write results, if they are not emailed', type=str, default='',
                         required=False)
+    parser.add_argument('--debug', help='Activate debugging messages', action='store_true', default=False)
 
     args = parser.parse_args()
 
     logger = myLogging.log.getLogger("ltf_send_emails")
+
+    if args.debug:
+
+        myLogging.set_level("DEBUG")
+
+    else:
+
+        myLogging.set_level("INFO")
 
     logger.debug("Arguments: %s" % (args.__dict__))
 
