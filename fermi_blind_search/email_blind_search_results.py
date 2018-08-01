@@ -48,7 +48,29 @@ def query_db_and_send_emails(config):
         _logger.info("There are %s blocks to email" % len(blocks_to_email))
 
         if len(blocks_to_email) == 0:
-            _logger.info("No emails to send, terminating...")
+            _logger.info("No emails to send, sending test email...")
+            # open the smtp email server
+            server = smtplib.SMTP(config.get("Results email", "host"),
+                                  port=int(config.get("Results email", "port")))
+            # format the body of the email
+            email_body = "There was no block to send"
+
+            recipients = config.get("Results email", "recipient").split(",")
+
+            # create a MIME object so that the email send correctly
+            msg = MIMEText(email_body)
+            msg['From'] = config.get("Results email", "username")
+            msg['To'] = ", ".join(recipients)
+            msg['Subject'] = config.get("Results email", "subject")
+
+            # send the email
+            try:
+                server.sendmail(config.get("Results email", "username"), recipients, msg.as_string())
+            except:
+                raise
+            finally:
+                del msg
+
 
         for block in blocks_to_email:
             # open the smtp email server
