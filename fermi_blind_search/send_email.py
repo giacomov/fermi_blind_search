@@ -36,7 +36,7 @@ def send_email(*args, **kwargs):
                                           ssh_username=tunnel_username,
                                           host_pkey_directories=[key_directory],
                                           remote_bind_address=('127.0.0.1',
-                                                               tunnel_port)) as tunnel:
+                                                               int(tunnel_port))) as tunnel:
 
 
             # Overwrite port to use the tunneled one
