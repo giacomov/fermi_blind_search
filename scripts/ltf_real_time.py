@@ -140,19 +140,6 @@ if __name__ == "__main__":
 
     configuration = args.config
 
-    # TODO: remove this later, testing the email functionality
-    host = configuration.get("Email", "host")
-    port = configuration.get("Email", "port")
-    username = configuration.get("Email", "username")
-    email_string = "ltf_real_time.py has started"
-    recipients = configuration.get("Email", "recipient")
-    subject = configuration.get("Email", "subject")
-    ssh_tunnel = (configuration.get("Email", "ssh_tunnel_host"),
-                  configuration.get("Email", "ssh_tunnel_port"),
-                  configuration.get("Email", "ssh_tunnel_username"),
-                  configuration.get("Email", "ssh_tunnel_key_directory"))
-    send_email(host, port, username, email_string, recipients, subject, tunnel=ssh_tunnel)
-
     # get the interval to rerun analyses over and convert them to seconds
     start_rerun_interval = int(configuration.get("Real time", "start_interval")) * 3600
     end_rerun_interval = int(configuration.get("Real time", "end_interval")) * 3600
