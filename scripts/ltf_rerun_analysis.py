@@ -11,12 +11,12 @@ import shutil
 import traceback
 import sys
 
-
 from fermi_blind_search.configuration import get_config
 from fermi_blind_search.which import which
 from fermi_blind_search.database import Database, database_connection
 from fermi_blind_search.make_directory import make_dir_if_not_exist
 from fermi_blind_search import myLogging
+from fermi_blind_search.send_email import send_email
 
 
 
@@ -160,6 +160,7 @@ if __name__ == "__main__":
     make_dir_if_not_exist(analysis_path)
 
     # directory we will use to store data from mdcget.py
+    unique_id = 0
     at_slac = configuration.get("Remote access", "at_slac")
     if at_slac == "True":
         unique_id = os.environ.get("LSB_JOBID")
@@ -176,6 +177,8 @@ if __name__ == "__main__":
         logger.info("We are at Stanford, the work directory is: %s" % workdir)
     else:
         workdir = os.path.join(analysis_path, "data")
+
+        unique_id = "Analysis not running on farm"
 
         logger.info("The at_slac value in the configuration file is not True or False, so we don't know if we are at "
                     "Stanford or SLAC, please change the configuration value. In the meantime, the work directory will "
@@ -201,6 +204,22 @@ if __name__ == "__main__":
     if check_new_data(met_start, met_stop, args.counts, ssh_host, logger):
         logger.info("There is new data for this analysis so we continue with the analysis")
 
+        # send an email to alert that a new analysis is being run
+        host = configuration.get("Email", "host")
+        port = configuration.get("Email", "port")
+        username = configuration.get("Email", "username")
+        recipients = configuration.get("Email", "recipient")
+        subject = "ltf_rerun_analysis.py STARTING"
+        email_string = ("Starting a new analysis with the following parameters: \n met_start: %s \n met_stop: %s \n "
+                        "jobID: %s" % (met_start, met_stop, unique_id))
+
+        ssh_tunnel = (configuration.get("Email", "ssh_tunnel_host"),
+                      configuration.get("Email", "ssh_tunnel_port"),
+                      configuration.get("Email", "ssh_tunnel_username"),
+                      configuration.get("Email", "ssh_tunnel_key_directory"))
+
+        send_email(host, port, username, email_string, recipients, subject, tunnel=ssh_tunnel)
+
         try:
 
             with database_connection(configuration):
@@ -219,6 +238,21 @@ if __name__ == "__main__":
         except:
 
             traceback.print_exc(sys.stdout)
+            error_msg = traceback.format_exc()
+
+            # send an email to alert that the analysis has failed
+            host = configuration.get("Email", "host")
+            port = configuration.get("Email", "port")
+            username = configuration.get("Email", "username")
+            recipients = configuration.get("Email", "recipient")
+            subject = "ltf_rerun_analysis.py ERROR"
+
+            ssh_tunnel = (configuration.get("Email", "ssh_tunnel_host"),
+                          configuration.get("Email", "ssh_tunnel_port"),
+                          configuration.get("Email", "ssh_tunnel_username"),
+                          configuration.get("Email", "ssh_tunnel_key_directory"))
+
+            send_email(host, port, username, error_msg, recipients, subject, tunnel=ssh_tunnel)
 
         else:
 

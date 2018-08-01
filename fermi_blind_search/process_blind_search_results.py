@@ -9,8 +9,6 @@ _logger = myLogging.log.getLogger("process_blind_search_results")
 
 def read_results(filename):
 
-    global _logger
-
     _logger.info("Reading results from file: %s" % filename)
     data = np.recfromtxt(filename, delimiter=' ', names=True, encoding=None)
 
@@ -41,8 +39,6 @@ def read_results(filename):
 
 
 def get_blocks(event_dict):
-
-    global _logger
 
     # we want to find the X blocks with lowest probability, so we do an
     # argmin-like operation to get their indices in event_dict
@@ -154,8 +150,6 @@ def get_blocks(event_dict):
 def already_in_db(block_dict, ra, dec, config):
     # returns true if the block is in the db
 
-    global _logger
-
     # get the interval of the transient
     interval = block_dict['stop_time'] - block_dict['start_time']
 
@@ -171,14 +165,15 @@ def already_in_db(block_dict, ra, dec, config):
 
         # get any transients that match ours
         matches = db.get_results(new_block_dict)
-
+        candidate = None
         if len(matches) == 0:
 
             _logger.info("The block was not in the database, so we add it")
             # add the candidate to the database
-            db.add_candidate(new_block_dict)
+            candidate = db.add_candidate(new_block_dict)
         else:
 
             _logger.info("The block was already in the database!")
+            candidate = matches[0]
 
-        return len(matches) > 0
+        return len(matches) > 0, candidate

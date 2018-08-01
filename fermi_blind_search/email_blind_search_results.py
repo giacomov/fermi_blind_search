@@ -8,8 +8,6 @@ _logger = myLogging.log.getLogger("process_blind_search_results")
 
 def format_email(block):
 
-    global _logger
-
     # using the start time, interval, ra, and dec of the blocks we need to email, format
     # the body of the email
 
@@ -31,8 +29,6 @@ def write_to_file(email_string, name):
 
 def query_db_and_send_emails(config):
 
-    global _logger
-
     _logger.info("Fetching the results that have not been emailed, and sending emails")
 
     # establish a connection with the database
@@ -48,17 +44,23 @@ def query_db_and_send_emails(config):
         if len(blocks_to_email) == 0:
             _logger.info("No emails to send, terminating...")
 
+        ssh_tunnel = (config.get("Email", "ssh_tunnel_host"),
+                      config.get("Email", "ssh_tunnel_port"),
+                      config.get("Email", "ssh_tunnel_username"),
+                      config.get("Email", "ssh_tunnel_key_directory"))
+
         for block in blocks_to_email:
 
             # format the body of the email
             email_body = format_email(block)
+            subject = "LTF_REAL_TIME RESULT"
 
             # send the email
             try:
                 send_email(config.get("Email", "host"), config.get("Email", "port"),
                            config.get("Email", "username"), config.get("Email", "recipient"),
                            config.get("Email", "username"), config.get("Email", "recipient"),
-                           email_body, config.get("Email", "subject"))
+                           email_body, subject, tunnel=ssh_tunnel)
             except:
                 raise
             else:
@@ -67,9 +69,41 @@ def query_db_and_send_emails(config):
                 _logger.debug("Successfully updated the database")
 
 
-def query_db_and_write(config, write_path):
+def send_email_and_update_db(block, config):
+    """
+    Does not query the database to find the blocks to email, and instead sends an email for the passed block
+    :param block: the block (retrieved from database) to email
+    :param config: the configuration object storing information for sending the email
+    :return: none
+    """
 
-    global _logger
+    with database_connection(config):
+        db = Database(config)
+        # format the body of the email
+        email_body = format_email(block)
+        subject = "LTF_REAL_TIME RESULT"
+
+        ssh_tunnel = (config.get("Email", "ssh_tunnel_host"),
+                      config.get("Email", "ssh_tunnel_port"),
+                      config.get("Email", "ssh_tunnel_username"),
+                      config.get("Email", "ssh_tunnel_key_directory"))
+
+        # send the email
+        try:
+            send_email(config.get("Email", "host"), config.get("Email", "port"),
+                       config.get("Email", "username"), config.get("Email", "recipient"),
+                       config.get("Email", "username"), config.get("Email", "recipient"),
+                       email_body, subject, tunnel=ssh_tunnel)
+
+        except:
+            raise
+        else:
+            # if the email has sent, update the database
+            db.update_result_email(block, email_val=True)
+            _logger.debug("Successfully updated the database")
+
+
+def query_db_and_write(config, write_path):
 
     _logger.info("Fetching the results that have not been emailed and writing the emails we would send to a file")
 

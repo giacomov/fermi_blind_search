@@ -76,7 +76,6 @@ class Database(object):
         global Base
         global Session
         global _engine
-        global _logger
 
         # initialize the engine using parameters from the config file
         if config.get("Real time", "is_sqlite") == "True":
@@ -99,16 +98,12 @@ class Database(object):
 
     def create_tables(self):
 
-        global _logger
-
         # create the Analysis and Results tables
         Base.metadata.create_all(_engine)
 
         _logger.info("Successfully created database tables")
 
     def delete_analysis_table(self):
-
-        global _logger
 
         # drop the table from the DB
         try:
@@ -176,8 +171,6 @@ class Database(object):
 
     def update_analysis_counts(self, met_start, duration, new_counts):
 
-        global _logger
-
         # open a session with the DB
         session = Session()
 
@@ -207,8 +200,6 @@ class Database(object):
         # TODO: which check that condidate_vals contains the correct field?
         # TODO: do we want to add a check that the candidate doesn't already exist?
 
-        global _logger
-
         assert (candidate_vals['ra'] is not None and candidate_vals['dec'] is not None and
                 candidate_vals['met_start'] is not None and candidate_vals['interval'] is not None and
                 candidate_vals['email'] is not None), \
@@ -236,10 +227,9 @@ class Database(object):
                 raise
             else:
                 _logger.debug("Successfully added result to database")
+                return new_candidate
 
     def get_analysis_between_times(self, start, stop):
-
-        global _logger
 
         _logger.info("Fetching analyses using data between %s and %s" % (start, stop))
 
@@ -253,8 +243,6 @@ class Database(object):
 
     def get_exact_analysis(self, start, stop):
 
-        global _logger
-
         _logger.info("Fetching analysis with met_start = %s and met_start + duration = %s" % (start, stop))
 
         # open a session
@@ -265,8 +253,6 @@ class Database(object):
                                                    Analysis.met_start + Analysis.duration == stop)).all()
 
     def get_results(self, candidate_vals):
-
-        global _logger
 
         # check that candidate vals has the correct fields to perform a search
         assert (candidate_vals['ra'] is not None and candidate_vals['dec'] is not None and
@@ -298,8 +284,6 @@ class Database(object):
 
     def get_results_to_email(self):
 
-        global _logger
-
         _logger.info("Fetching results with email = False (0 in database)")
 
         # open a session
@@ -309,8 +293,6 @@ class Database(object):
         return session.query(Results).filter(Results.email == 0).all()
 
     def update_result_email(self, candidate, email_val=False):
-
-        global _logger
 
         _logger.info("Updating result: %s to have email value: %s" % (candidate, email_val))
 

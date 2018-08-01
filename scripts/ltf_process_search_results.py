@@ -5,6 +5,7 @@ import sys
 from fermi_blind_search.configuration import get_config
 from fermi_blind_search.process_blind_search_results import read_results, already_in_db, get_blocks
 from fermi_blind_search import myLogging
+from fermi_blind_search.email_blind_search_results import send_email_and_update_db
 
 
 if __name__ == "__main__":
@@ -51,8 +52,13 @@ if __name__ == "__main__":
         for j in range(len(blocks_to_email[i])):
             logger.info("Checking if the block with these parameters is in the db: block: %s, ra: %s, dec: %s" %
                         (blocks_to_email[i][j], ra, dec))
-            in_db = already_in_db(blocks_to_email[i][j], ra, dec, configuration)
+            in_db, result = already_in_db(blocks_to_email[i][j], ra, dec, configuration)
             if in_db:
-                logger.info("The block was already in the database")
+                logger.info("The block was already in the database, not sending email")
             else:
                 logger.info("The block was not in the database")
+
+                # we went to send an email about this block
+                send_email_and_update_db(result, configuration)
+
+                logger.info("Email sent and block updated to email=True in database")
