@@ -12,14 +12,6 @@ from fermi_blind_search import myLogging
 
 _logger = myLogging.log.getLogger("database")
 
-# Now overwrite stdout and stderr so they will go to the logger
-sl = myLogging.StreamToLogger(_logger, myLogging.log.DEBUG)
-sys.stdout = sl
-
-sl = myLogging.StreamToLogger(_logger, myLogging.log.ERROR)
-sys.stderr = sl
-
-
 # will store the engine that will connect to the database
 _engine = None
 
