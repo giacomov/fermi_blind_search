@@ -185,7 +185,7 @@ class Database(object):
         results = session.query(Analysis).filter(Analysis.met_start == met_start).filter(Analysis.duration == duration).all()
 
         # check that there is only one analysis that matches these parameters
-
+        assert len(results) != 0, "Cannot update this analysis because it does not exist"
         assert len(results) == 1, 'More than one analysis exists with these parameters! This should never happen'
 
         analysis = results[0]
