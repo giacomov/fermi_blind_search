@@ -20,7 +20,7 @@ from fermi_blind_search.send_email import send_email
 
 
 
-def check_new_data(met_start, met_stop, counts, ssh_host, logger):
+def check_new_data(met_start, met_stop, counts, ssh_host, config, logger):
 
     logger.info("Checking if there is new data for the analysis with the parameters: met_start: %s met_stop: %s, "
                "counts: %s" % (met_start, met_stop, counts))
@@ -33,6 +33,12 @@ def check_new_data(met_start, met_stop, counts, ssh_host, logger):
         raise IOError("Could not get number of counts between %s and %s" % (met_start, met_stop))
 
     number_of_counts = int(out.split()[-1])
+
+    logger.info("Updating the database to reflect the new number of counts. The parameters are: met_start %s, "
+                "duration: %s, counts %s" % (met_start, float(met_stop) - float(met_start), number_of_counts))
+    with database_connection(configuration):
+        db = Database(config)
+        db.update_analysis_counts(met_start, float(met_stop) - float(met_start), number_of_counts)
 
     # return True if there is new data, False if there is not
     return number_of_counts > counts
@@ -55,18 +61,6 @@ def get_data(data_path, met_start, met_stop, config, logger):
 
     # call mdcget and wait for it to return
     subprocess.check_call(mdcget_cmd_line, shell=True)
-
-    # get the counts from this call just in case new data has arrive between the last call to mdcget
-    ft1_data = pyfits.getdata(os.path.join(data_path, "data_ft1.fit"), "EVENTS")
-
-    # update the counts stored in the database
-    counts = len(ft1_data)
-    logger.info("Updating the database to reflect the new number of counts. The parameters are: met_start %s, "
-                "duration: %s, counts %s" % (met_start, float(met_stop) - float(met_start), counts))
-    db = Database(config)
-    db.update_analysis_counts(met_start, float(met_stop) - float(met_start), counts)
-
-    return
 
 
 def run_ltf_search(workdir, outfile, logfile, logger):
@@ -201,7 +195,7 @@ if __name__ == "__main__":
 
     logger.info("Checking if the counts of the analysis have changed")
 
-    if check_new_data(met_start, met_stop, args.counts, ssh_host, logger):
+    if check_new_data(met_start, met_stop, args.counts, ssh_host, configuration, logger):
         logger.info("There is new data for this analysis so we continue with the analysis")
 
         # send an email to alert that a new analysis is being run
