@@ -45,6 +45,8 @@ def query_db_and_send_emails(config):
         blocks_to_email = db.get_results_to_email()
         _logger.debug("Successfully fetched results from database")
 
+        _logger.info("There are %s blocks to email" % len(blocks_to_email))
+
         if len(blocks_to_email) == 0:
             _logger.info("No emails to send, terminating...")
 
@@ -88,6 +90,8 @@ def query_db_and_write(config, write_path):
 
         # get the blocks that need to be emailed
         blocks_to_email = db.get_results_to_email()
+
+        _logger.info("There are %s blocks to email" % len(blocks_to_email))
 
         if len(blocks_to_email) == 0:
             _logger.info("No emails to send, terminating...")
