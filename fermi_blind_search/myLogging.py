@@ -1,8 +1,7 @@
 import logging as log
-import logging.config as logconfig
 
 
-def setLevel(level):
+def set_level(level):
     # Set up the logger
     numeric_level = getattr(log, level.upper(), None)
     log.basicConfig(format='%(asctime)s : %(levelname)s from %(funcName)s in %(module)s: %(message)s',

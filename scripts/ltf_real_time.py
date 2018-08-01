@@ -56,11 +56,20 @@ if __name__ == "__main__":
     parser.add_argument('--config', help='Path to config file', type=get_config, required=True)
     parser.add_argument('--test_time', help='For testing purposes. Sets the most_recent_event_time instead of selecting'
                                             'the time of the most recent recorded event', type=float, required=False)
+    parser.add_argument('--debug', help='Activate debugging messages', action='store_true', default=False)
 
     args = parser.parse_args()
 
     # set up logging
-    logger = myLogging.log.getLogger("ltf_real_time")
+    logger = myLogging.log.getLogger("ltf_real_time.py")
+
+    if args.debug:
+
+        myLogging.set_level("DEBUG")
+
+    else:
+
+        myLogging.set_level("INFO")
 
     logger.debug("Arguments: %s" % (args.__dict__))
 

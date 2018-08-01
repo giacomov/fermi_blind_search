@@ -129,11 +129,11 @@ if __name__ == "__main__":
 
     if args.debug:
 
-        myLogging.setLevel("DEBUG")
+        myLogging.set_level("DEBUG")
 
     else:
 
-        myLogging.setLevel("INFO")
+        myLogging.set_level("INFO")
 
     logger.debug("Arguments: %s" % (args.__dict__))
 
