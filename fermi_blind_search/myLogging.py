@@ -1,4 +1,6 @@
 import logging as log
+# LEAVE THIS HERE: it is used by other modules
+import logging.config as logconfig
 
 
 def set_level(level):
