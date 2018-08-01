@@ -97,14 +97,14 @@ def run_ltf_search(workdir, outfile, logfile, logger):
 
 def process_results(outfile, config_path, logger):
 
-    logger.log("Processing results stored at %s" % outfile)
+    logger.info("Processing results stored at %s" % outfile)
     # get path to ltf_send_results_email
     results_path = which("ltf_process_search_results.py")
 
     # format the command
     send_results_cmd_line = ("%s --results %s --config %s" % (results_path, outfile, config_path))
 
-    logger.log("process results command line: %s" % send_results_cmd_line)
+    logger.info("process results command line: %s" % send_results_cmd_line)
 
     # execute
     subprocess.check_call(send_results_cmd_line, shell=True)
@@ -196,15 +196,15 @@ if __name__ == "__main__":
 
     ssh_host = configuration.get("Remote access", "ssh_host")
 
-    logger.log("Checking if the counts of the analysis have changed")
+    logger.info("Checking if the counts of the analysis have changed")
 
     if check_new_data(met_start, met_stop, args.counts, ssh_host, logger):
-        logger.log("There is new data for this analysis so we continue with the analysis")
+        logger.info("There is new data for this analysis so we continue with the analysis")
 
         try:
 
             with database_connection(configuration):
-                logger.log("Database connection established")
+                logger.info("Database connection established")
                 # there is new data! so we rerun the analysis
 
                 # first actually fetch the data we will use as a single file
@@ -236,7 +236,7 @@ if __name__ == "__main__":
                 logger.error("Could not remove data directory %s " % workdir)
                 raise
     else:
-        logger.log("There is no new data for this analysis, ending the analysis now")
+        logger.info("There is no new data for this analysis, ending the analysis now")
         # move back to where we were
         os.chdir(cwd)
 
