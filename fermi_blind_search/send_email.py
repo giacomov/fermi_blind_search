@@ -1,9 +1,7 @@
 import smtplib
-import getpass
 from email.mime.text import MIMEText
 from fermi_blind_search import myLogging
 import sshtunnel
-from configuration import get_config
 
 _logger = myLogging.log.getLogger("send_email")
 
