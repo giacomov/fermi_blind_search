@@ -29,5 +29,5 @@ if __name__ == "__main__":
         query_db_and_send_emails(configuration)
     else:
         # we want to write the "emails" to a file
-        logger.email("We want to write the emails to a file instead of sending them")
+        logger.info("We want to write the emails to a file instead of sending them")
         query_db_and_write(configuration, args.write_path)
