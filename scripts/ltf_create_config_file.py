@@ -66,7 +66,10 @@ start_interval = 24
 end_interval = 12
 
 # command to start an analysis on the farm
-farm_command = qsub -N $JOB_NAME -l nodes=1:ppn=$NUM_CPUS -j oe -o $FARM_LOG_PATH -F ' --met_start $MET_START --duration $DURATION --counts $COUNTS --directory $DIRECTORY --config $CONFIG' $SCRIPT
+farm_command = qsub -N $JOB_NAME -l nodes=1:ppn=$NUM_CPUS -l prologue=$PATH_TO_PROLOGUE -j oe -o $FARM_LOG_PATH -F ' --met_start $MET_START --duration $DURATION --counts $COUNTS --directory $DIRECTORY --config $CONFIG' $SCRIPT
+
+# path to the script to be run before the script submitted to the farm
+farm_prologue_script = 
 
 # path to where to store results
 base_path = ./real_time_work
@@ -106,6 +109,7 @@ ssh_host = galprop-cluster
 
 # stores if we are at SLAC (False for at Stanford) 
 at_slac = False
+
 
 [Hardware]
 ncpus = 10

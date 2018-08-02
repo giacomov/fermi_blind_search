@@ -34,12 +34,12 @@ def rerun_analysis(rerun_analysis_path, met_start, duration, counts, directory, 
     rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$JOB_NAME",
                                                               "%.15s" % str(met_start) + "_" + str(float(duration)))
     rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$NUM_CPUS", config.get("Hardware", "ncpus"))
+    rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$PATH_TO_PROLOGUE", config.get("Real time",
+                                                                                              "farm_prologue_script"))
     rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$MET_START", str(met_start))
     rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$DURATION", str(duration))
     rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$COUNTS", str(counts))
     rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$DIRECTORY", directory)
-    # rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$OUTFILE", str(outfile))
-    # rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$LOGFILE", str(logfile))
     rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$CONFIG", str(config.config_file))
     rerun_analysis_cmd_line = rerun_analysis_cmd_line.replace("$SCRIPT", rerun_analysis_path)
 
