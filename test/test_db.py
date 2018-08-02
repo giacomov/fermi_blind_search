@@ -20,7 +20,7 @@ def test_setup(configuration):
 def test_analysis_row_with_missing_col(configuration):
 
     db = Database(configuration)
-    analysis_to_add = {"duration": 1.2, "counts": 4, "outfile": "out.txt", "logfile": "log.txt"}
+    analysis_to_add = {"duration": 1.2, "counts": 4, 'directory': "directory/"}
     with pytest.raises(KeyError):
         db.add_analysis(analysis_to_add)
     # do something to confirm that we get a failed assertion?
@@ -29,7 +29,7 @@ def test_analysis_row_with_missing_col(configuration):
 # def test_analysis_row_with_wrong_type_float():
 #     configuration = read_config_file()
 #     db = Database(configuration)
-#     analysis_to_add = {"met_start": "string", "duration": 1.2, "counts": 4, "outfile": "out.txt", "logfile": "log.txt"}
+#     analysis_to_add = {"met_start": "string", "duration": 1.2, "counts": 4, "directory": "directory/"}
 #     with pytest.raises(Exception):
 #         db.add_analysis(analysis_to_add)
 #     # do something to confirm we get a failed assertion
@@ -37,14 +37,13 @@ def test_analysis_row_with_missing_col(configuration):
 # def test_analysis_row_with_wrong_type_int():
 #     configuration = read_config_file()
 #     db = Database(configuration)
-#     analysis_to_add = {"met_start": 1.2, "duration": 1.2, "counts": "string", "outfile": "out.txt",
-#                        "logfile": "log.txt"}
+#     analysis_to_add = {"met_start": 1.2, "duration": 1.2, "counts": "string", "directory": "directory/"}
 #     # TODO: figure out how to do type checking
 #
 # def test_analysis_row_with_wrong_type_string():
 #     configuration = read_config_file()
 #     db = Database(configuration)
-#     analysis_to_add = {"met_start": 1.2, "duration": 1.2, "counts": 4, "outfile": 1, "logfile": "log.txt"}
+#     analysis_to_add = {"met_start": 1.2, "duration": 1.2, "counts": 4, "directory": 1}
 #     with pytest.raises(Exception):
 #         db.add_analysis(analysis_to_add)
 #     # do something to confirm we get a failed assertion
@@ -68,7 +67,7 @@ def test_result_row_with_missing_col(configuration):
 def test_add_same_analysis_twice(configuration):
 
     db = Database(configuration)
-    analysis_to_add = {"met_start": 45.1, "duration": 1.2, "counts": 4, "outfile": "out.txt", "logfile": "log.txt"}
+    analysis_to_add = {"met_start": 45.1, "duration": 1.2, "counts": 4, "directory": "directory/"}
     db.add_analysis(analysis_to_add)
     with pytest.raises(Exception):
         db.add_analysis(analysis_to_add)
@@ -104,9 +103,9 @@ def test_get_results(configuration):
 def test_get_analyses(configuration):
 
     db = Database(configuration)
-    analysis_to_add = {"met_start": 145.1, "duration": 100.2, "counts": 45, "outfile": "out.txt", "logfile": "log.txt"}
-    analysis_to_add2 = {"met_start": 150.1, "duration": 95.0, "counts": 70, "outfile": "out.txt", "logfile": "log.txt"}
-    analysis_to_add3 = {"met_start": 5.1, "duration": 95.0, "counts": 70, "outfile": "out.txt", "logfile": "log.txt"}
+    analysis_to_add = {"met_start": 145.1, "duration": 100.2, "counts": 45, "directory": "directory/"}
+    analysis_to_add2 = {"met_start": 150.1, "duration": 95.0, "counts": 70, "directory": "directory/"}
+    analysis_to_add3 = {"met_start": 5.1, "duration": 95.0, "counts": 70, "directory": "directory/"}
 
     db.add_analysis(analysis_to_add)
     db.add_analysis(analysis_to_add2)

@@ -139,10 +139,9 @@ class Database(object):
         # TODO: do we want to add a check that the analysis doesn't already exist?
 
         assert (analysis_vals['met_start'] is not None and analysis_vals['duration'] is not None and
-                analysis_vals['counts'] is not None and analysis_vals['outfile'] is not None and
-                analysis_vals['logfile'] is not None), "One of the parameters to enter the analysis into the " \
-                                                       "database is missing. Parameters are met_start, duration, " \
-                                                       "counts, outfile, and logfile"
+                analysis_vals['counts'] is not None and analysis_vals['directory'] is not None), \
+            "One of the parameters to enter the analysis into the database is missing. Parameters are met_start, " \
+            "duration, counts, and directory"
 
         assert isinstance(analysis_vals["counts"], int), "Counts is not an integer"
 
@@ -150,8 +149,7 @@ class Database(object):
 
             # set the values of the analysis to be added to the table
             new_analysis = Analysis(met_start=analysis_vals['met_start'], duration=analysis_vals['duration'],
-                                    counts=analysis_vals['counts'], outfile=analysis_vals['outfile'],
-                                    logfile=analysis_vals['logfile'])
+                                    counts=analysis_vals['counts'], directory=analysis_vals['directory'])
             _logger.info("Adding this Analysis to the database: %s" % new_analysis)
         except KeyError:
             _logger.error('ERROR: The analysis you want to add does not have the proper fields!')
@@ -175,7 +173,8 @@ class Database(object):
         session = Session()
 
         # get the analysis to be updated
-        results = session.query(Analysis).filter(Analysis.met_start == met_start).filter(Analysis.duration == duration).all()
+        results = session.query(Analysis).filter(Analysis.met_start == met_start).filter(
+            Analysis.duration == duration).all()
 
         # check that there is only one analysis that matches these parameters
         assert len(results) != 0, "Cannot update this analysis because it does not exist"
@@ -328,14 +327,13 @@ class Analysis(Base):
     met_start = Column(Float(32), Sequence('analysis_met_start_seq'), primary_key=True)
     duration = Column(Float(32), Sequence('analysis_duration_seq'), primary_key=True)
     counts = Column(Integer)
-    outfile = Column(String(250))
-    logfile = Column(String(250))
+    directory = Column(String(250))
 
     def __repr__(self):
 
         # formatting string so that printing rows from the table is more readable
-        return "<Analysis(met_start= %s, duration= %s, counts= %s, outfile= %s, logfile= %s)>" % \
-               (self.met_start, self.duration, self.counts, self.outfile, self.logfile)
+        return "<Analysis(met_start= %s, duration= %s, counts= %s, directory= %s)>" % \
+               (self.met_start, self.duration, self.counts, self.directory)
 
 
 class Results(Base):

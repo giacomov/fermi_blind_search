@@ -66,7 +66,7 @@ start_interval = 24
 end_interval = 12
 
 # command to start an analysis on the farm
-farm_command = qsub -N $JOB_NAME -l nodes=1:ppn=$NUM_CPUS -j oe -o $FARM_LOG_PATH -F ' --met_start $MET_START --duration $DURATION --counts $COUNTS --outfile $OUTFILE --logfile $LOGFILE --config $CONFIG' $SCRIPT
+farm_command = qsub -N $JOB_NAME -l nodes=1:ppn=$NUM_CPUS -j oe -o $FARM_LOG_PATH -F ' --met_start $MET_START --duration $DURATION --counts $COUNTS --directory $DIRECTORY --config $CONFIG' $SCRIPT
 
 # path to where to store results
 base_path = ./real_time_work

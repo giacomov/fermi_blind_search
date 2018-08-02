@@ -111,8 +111,9 @@ if __name__ == "__main__":
     parser.add_argument('--duration', help='duration of the analysis', type=float, required=True)
     parser.add_argument('--counts', help='the counts used in the previous version of the analysis', type=int,
                         required=True)
-    parser.add_argument('--outfile', help='Path to the outfile', type=str, required=True)
-    parser.add_argument('--logfile', help='Path to the logfile', type=str, required=True)
+    parser.add_argument('--directory', help='Path to the directory', type=str, required=True)
+    # parser.add_argument('--outfile', help='Path to the outfile', type=str, required=True)
+    # parser.add_argument('--logfile', help='Path to the logfile', type=str, required=True)
     parser.add_argument('--config', help='Path to config file', type=get_config, required=True)
     parser.add_argument('--debug', help='Activate debugging messages', action='store_true', default=False)
 
@@ -134,9 +135,6 @@ if __name__ == "__main__":
     # get the configuration object
     configuration = args.config
 
-    # get the base path
-    base_path = configuration.get("Real time", "base_path")
-
     # get the start and duration
     met_start = args.met_start
     duration = args.duration
@@ -145,8 +143,7 @@ if __name__ == "__main__":
     met_stop = met_start + duration
 
     # get the directory for this analysis
-    analysis_path = os.path.abspath(os.path.expandvars(os.path.expanduser(base_path + "/" + str(met_start) + "_" +
-                                                                          str(duration))))
+    analysis_path = args.directory
 
     logger.info("Results and log files for this analysis will be stored at %s" % analysis_path)
 
@@ -182,8 +179,8 @@ if __name__ == "__main__":
 
     # make a directory to store data from mcdget (if we fetch data)
     make_dir_if_not_exist(workdir)
-    outfile = os.path.join(workdir, args.outfile)
-    logfile = os.path.join(workdir, args.logfile)
+    outfile = os.path.join(workdir, "out.txt")
+    logfile = os.path.join(workdir, "log.txt")
 
     # store where we are now, so we can return
     cwd = os.getcwd()
@@ -226,6 +223,10 @@ if __name__ == "__main__":
                 # run ltf_search_for_transients
                 run_ltf_search(workdir, outfile, logfile, logger)
 
+                # if we make it this far, the analysis has been successful and we want to copy the results back
+                shutil.copy2(outfile, analysis_path)
+                shutil.copy2(logfile, analysis_path)
+
                 # check results against candidates we have already found and send emails
                 process_results(outfile, configuration.config_file, logger)
 
@@ -247,11 +248,6 @@ if __name__ == "__main__":
                           configuration.get("Email", "ssh_tunnel_key_directory"))
 
             send_email(host, port, username, error_msg, recipients, subject, tunnel=ssh_tunnel)
-
-        else:
-
-            shutil.copy2(outfile, analysis_path)
-            shutil.copy2(logfile, analysis_path)
 
         finally:
             # move back to where we were

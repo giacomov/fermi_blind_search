@@ -59,8 +59,11 @@ def test_most_recent_has_been_run_should_rerun(configuration):
     db = Database(configuration)
     db.create_tables()
 
-    analysis_to_add = {"met_start": 410184003.0, "duration": 43200.0, "counts": 30, "outfile": "out.txt",
-                       "logfile": "log.txt"}
+    base_path = os.path.abspath(os.path.expandvars(
+        os.path.expanduser(configuration.get("Real time", "base_path"))))
+    directory = os.path.join(base_path, "410184003.0_43200.0")
+
+    analysis_to_add = {"met_start": 410184003.0, "duration": 43200.0, "counts": 30, "directory": directory}
     db.add_analysis(analysis_to_add)
 
     results = db.get_analysis_between_times(410227203.000 - 86400.0, 410227203.000 - 43200.0 - 1)
@@ -78,14 +81,13 @@ def test_most_recent_has_been_run_should_rerun(configuration):
 
     # farm jobs have completed, check the results
 
-    write_path = os.path.join(configuration.get("Real time", "base_path"),
-                              str(most_recent_event - 43200.0) + "_43200.0", "out.txt")
+    write_path = os.path.join(directory, "out.txt")
     results = []
     with open(write_path) as f:
         results = f.read().split("\n")
     db.delete_analysis_table()
     db.delete_results_table()
-    shutil.rmtree(configuration.get("Real time", "base_path"))
+    shutil.rmtree(base_path)
 
     assert results[1] == \
            "LTF010432.25-832140.64 16.1343688965 -83.361289978 410205293.043 410217452.222 9 1.0184731220185956e-07"
@@ -99,8 +101,11 @@ def test_most_recent_has_been_run_should_not_rerun(configuration):
     db = Database(configuration)
     db.create_tables()
 
-    analysis_to_add = {"met_start": 410184003.0, "duration": 43200.0, "counts": 3639487, "outfile": "out.txt",
-                       "logfile": "log.txt"}
+    base_path = os.path.abspath(os.path.expandvars(
+        os.path.expanduser(configuration.get("Real time", "base_path"))))
+    directory = os.path.join(base_path, "410184003.0_43200.0")
+
+    analysis_to_add = {"met_start": 410184003.0, "duration": 43200.0, "counts": 3639487, "directory": directory}
     db.add_analysis(analysis_to_add)
 
     cmd_line = ("%s --config %s --test_time %s" % (real_time_path, configuration.config_file, most_recent_event))
@@ -112,13 +117,11 @@ def test_most_recent_has_been_run_should_not_rerun(configuration):
         time.sleep(5)
 
     # farm jobs have completed, check the results
-    write_dir = os.path.join(configuration.get("Real time", "base_path"),
-                              str(most_recent_event - 43200.0) + "_43200.0")
-    ls = os.listdir(write_dir)
+    ls = os.listdir(directory)
 
     db.delete_analysis_table()
     db.delete_results_table()
-    shutil.rmtree(configuration.get("Real time", "base_path"))
+    shutil.rmtree(base_path)
 
     assert len(ls) == 1
 
@@ -132,37 +135,39 @@ def test_rerun_past_analyses(configuration):
     db.create_tables()
 
     # analyses to rerun
+    base_path = os.path.abspath(os.path.expandvars(
+        os.path.expanduser(configuration.get("Real time", "base_path"))))
 
     # end time of analysis falls in analysis interval
-    analysis_to_add = {"met_start": 410097703.0, "duration": 43200.0, "counts": 25, "outfile": "out.txt",
-                       "logfile": "log.txt"}
+    analysis_to_add = {"met_start": 410097703.0, "duration": 43200.0, "counts": 25,
+                       "directory": os.path.join(base_path, "410097703.0_43200.0")}
     db.add_analysis(analysis_to_add)
 
     # start and end times of analysis fall in analysis interval
-    analysis_to_add = {"met_start": 410141803.0, "duration": 40200.0, "counts": 25, "outfile": "out.txt",
-                       "logfile": "log.txt"}
+    analysis_to_add = {"met_start": 410141803.0, "duration": 40200.0, "counts": 25,
+                       "directory": os.path.join(base_path, "410141803.0_40200.0")}
     db.add_analysis(analysis_to_add)
 
     # start time of analysis falls in analysis interval
-    analysis_to_add = {"met_start": 410183003.0, "duration": 40000.0, "counts": 25, "outfile": "out.txt",
-                       "logfile": "log.txt"}
+    analysis_to_add = {"met_start": 410183003.0, "duration": 40000.0, "counts": 25,
+                       "directory": os.path.join(base_path, "410183003.0_40000.0")}
     db.add_analysis(analysis_to_add)
 
     # analyses not to rerun
 
     # # end time of analysis falls in analysis interval
-    analysis_to_add = {"met_start": 410139803.0, "duration": 40000.0, "counts": 3576544, "outfile": "out.txt",
-                       "logfile": "log.txt"}
+    analysis_to_add = {"met_start": 410139803.0, "duration": 40000.0, "counts": 3576544,
+                       "directory": os.path.join(base_path, "410139803.0_40000.0")}
     db.add_analysis(analysis_to_add)
 
     # start and end times of analysis fall in analysis interval
-    analysis_to_add = {"met_start": 410141803.0, "duration": 40000.0, "counts": 3539609, "outfile": "out.txt",
-                       "logfile": "log.txt"}
+    analysis_to_add = {"met_start": 410141803.0, "duration": 40000.0, "counts": 3539609,
+                       "directory": os.path.join(base_path, "410141803.0_40000.0")}
     db.add_analysis(analysis_to_add)
 
     # start time of analysis falls in analysis interval
-    analysis_to_add = {"met_start": 410183003.0, "duration": 40200.0, "counts": 3204272, "outfile": "out.txt",
-                       "logfile": "log.txt"}
+    analysis_to_add = {"met_start": 410183003.0, "duration": 40200.0, "counts": 3204272,
+                       "directory": os.path.join(base_path, "410183003.0_40200.0")}
     db.add_analysis(analysis_to_add)
 
     cmd_line = ("%s --config %s --test_time %s" % (real_time_path, configuration.config_file, most_recent_event))
@@ -175,25 +180,24 @@ def test_rerun_past_analyses(configuration):
         time.sleep(5)
 
     # farm jobs have completed, check the results
-    base_dir = configuration.get("Real time", "base_path")
-    len1 = len(os.listdir(os.path.join(base_dir, "410139803.0_40000.0")))
-    len2 = len(os.listdir(os.path.join(base_dir, "410141803.0_40000.0")))
-    len3 = len(os.listdir(os.path.join(base_dir, "410183003.0_40200.0")))
+    len1 = len(os.listdir(os.path.join(base_path, "410139803.0_40000.0")))
+    len2 = len(os.listdir(os.path.join(base_path, "410141803.0_40000.0")))
+    len3 = len(os.listdir(os.path.join(base_path, "410183003.0_40200.0")))
 
     results1 = ''
-    with open(os.path.join(base_dir, "410097703.0_43200.0/out.txt")) as f:
+    with open(os.path.join(base_path, "410097703.0_43200.0/out.txt")) as f:
         results1 = f.read()
 
     results2 = []
-    with open(os.path.join(base_dir, "410097703.0_43200.0/out.txt")) as f:
+    with open(os.path.join(base_path, "410097703.0_43200.0/out.txt")) as f:
         results2 = f.read().split("\n")
 
     results3 = []
-    with open(os.path.join(base_dir, "410183003.0_40000.0/out.txt")) as f:
+    with open(os.path.join(base_path, "410183003.0_40000.0/out.txt")) as f:
         results3 = f.read().split("\n")
 
     results4 = []
-    with open(os.path.join(base_dir, "410184003.0_43200.0/out.txt")) as f:
+    with open(os.path.join(base_path, "410184003.0_43200.0/out.txt")) as f:
         results4 = f.read().split("\n")
 
     db.delete_analysis_table()
