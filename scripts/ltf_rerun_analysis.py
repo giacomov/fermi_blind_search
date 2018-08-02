@@ -34,11 +34,17 @@ def check_new_data(met_start, met_stop, counts, ssh_host, config, logger):
 
     number_of_counts = int(out.split()[-1])
 
-    logger.info("Updating the database to reflect the new number of counts. The parameters are: met_start %s, "
-                "duration: %s, counts %s" % (met_start, float(met_stop) - float(met_start), number_of_counts))
-    with database_connection(configuration):
-        db = Database(config)
-        db.update_analysis_counts(met_start, float(met_stop) - float(met_start), number_of_counts)
+    if number_of_counts > counts:
+
+        logger.info("Updating the database to reflect the new number of counts. The parameters are: met_start %s, "
+                    "duration: %s, counts %s" % (met_start, float(met_stop) - float(met_start), number_of_counts))
+        with database_connection(configuration):
+            db = Database(config)
+            db.update_analysis_counts(met_start, float(met_stop) - float(met_start), number_of_counts)
+    else:
+
+        logger.info("Number of counts from mdcget was %s, which is the same as in the database (%s), not updating the "
+                    "database")
 
     # return True if there is new data, False if there is not
     return number_of_counts > counts
@@ -193,6 +199,8 @@ if __name__ == "__main__":
     logger.info("Checking if the counts of the analysis have changed")
 
     if check_new_data(met_start, met_stop, args.counts, ssh_host, configuration, logger):
+        # there is new data! so we rerun the analysis (and send an email)
+
         logger.info("There is new data for this analysis so we continue with the analysis")
 
         # send an email to alert that a new analysis is being run
@@ -215,7 +223,6 @@ if __name__ == "__main__":
 
             with database_connection(configuration):
                 logger.info("Database connection established")
-                # there is new data! so we rerun the analysis
 
                 # first actually fetch the data we will use as a single file
                 get_data(workdir, met_start, met_stop, configuration, logger)
@@ -224,6 +231,7 @@ if __name__ == "__main__":
                 run_ltf_search(workdir, outfile, logfile, logger)
 
                 # if we make it this far, the analysis has been successful and we want to copy the results back
+                # we do this here so that if process_results fails, we still have the results files where we want them
                 shutil.copy2(outfile, analysis_path)
                 shutil.copy2(logfile, analysis_path)
 
