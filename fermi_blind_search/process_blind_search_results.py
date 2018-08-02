@@ -160,20 +160,19 @@ def already_in_db(block_dict, ra, dec, config):
     _logger.info("Checking if the block is in the database: %s" % new_block_dict)
 
     # establish db connection
-    with database_connection(config):
-        db = Database(config)
+    db = Database(config)
 
-        # get any transients that match ours
-        matches = db.get_results(new_block_dict)
-        candidate = None
-        if len(matches) == 0:
+    # get any transients that match ours
+    matches = db.get_results(new_block_dict)
+    candidate = None
+    if len(matches) == 0:
 
-            _logger.info("The block was not in the database, so we add it")
-            # add the candidate to the database
-            candidate = db.add_candidate(new_block_dict)
-        else:
+        _logger.info("The block was not in the database, so we add it")
+        # add the candidate to the database
+        candidate = db.add_candidate(new_block_dict)
+    else:
 
-            _logger.info("The block was already in the database!")
-            candidate = matches[0]
+        _logger.info("The block was already in the database!")
+        candidate = matches[0]
 
-        return len(matches) > 0, candidate
+    return len(matches) > 0, candidate

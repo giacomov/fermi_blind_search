@@ -32,41 +32,40 @@ def query_db_and_send_emails(config):
     _logger.info("Fetching the results that have not been emailed, and sending emails")
 
     # establish a connection with the database
-    with database_connection(config):
-        db = Database(config)
+    db = Database(config)
 
-        # fetch the blocks that haven't been emailed yet
-        blocks_to_email = db.get_results_to_email()
-        _logger.debug("Successfully fetched results from database")
+    # fetch the blocks that haven't been emailed yet
+    blocks_to_email = db.get_results_to_email()
+    _logger.debug("Successfully fetched results from database")
 
-        _logger.info("There are %s blocks to email" % len(blocks_to_email))
+    _logger.info("There are %s blocks to email" % len(blocks_to_email))
 
-        if len(blocks_to_email) == 0:
-            _logger.info("No emails to send, terminating...")
+    if len(blocks_to_email) == 0:
+        _logger.info("No emails to send, terminating...")
 
-        ssh_tunnel = (config.get("Email", "ssh_tunnel_host"),
-                      config.get("Email", "ssh_tunnel_port"),
-                      config.get("Email", "ssh_tunnel_username"),
-                      config.get("Email", "ssh_tunnel_key_directory"))
+    ssh_tunnel = (config.get("Email", "ssh_tunnel_host"),
+                  config.get("Email", "ssh_tunnel_port"),
+                  config.get("Email", "ssh_tunnel_username"),
+                  config.get("Email", "ssh_tunnel_key_directory"))
 
-        for block in blocks_to_email:
+    for block in blocks_to_email:
 
-            # format the body of the email
-            email_body = format_email(block)
-            subject = "LTF_REAL_TIME RESULT"
+        # format the body of the email
+        email_body = format_email(block)
+        subject = "LTF_REAL_TIME RESULT"
 
-            # send the email
-            try:
-                send_email(config.get("Email", "host"), config.get("Email", "port"),
-                           config.get("Email", "username"), config.get("Email", "recipient"),
-                           config.get("Email", "username"), config.get("Email", "recipient"),
-                           email_body, subject, tunnel=ssh_tunnel)
-            except:
-                raise
-            else:
-                # if the email has sent, update the database
-                db.update_result_email(block, email_val=True)
-                _logger.debug("Successfully updated the database")
+        # send the email
+        try:
+            send_email(config.get("Email", "host"), config.get("Email", "port"),
+                       config.get("Email", "username"), config.get("Email", "recipient"),
+                       config.get("Email", "username"), config.get("Email", "recipient"),
+                       email_body, subject, tunnel=ssh_tunnel)
+        except:
+            raise
+        else:
+            # if the email has sent, update the database
+            db.update_result_email(block, email_val=True)
+            _logger.debug("Successfully updated the database")
 
 
 def send_email_and_update_db(block, config):
@@ -77,30 +76,29 @@ def send_email_and_update_db(block, config):
     :return: none
     """
 
-    with database_connection(config):
-        db = Database(config)
-        # format the body of the email
-        email_body = format_email(block)
-        subject = "LTF_REAL_TIME RESULT"
+    db = Database(config)
+    # format the body of the email
+    email_body = format_email(block)
+    subject = "LTF_REAL_TIME RESULT"
 
-        ssh_tunnel = (config.get("Email", "ssh_tunnel_host"),
-                      config.get("Email", "ssh_tunnel_port"),
-                      config.get("Email", "ssh_tunnel_username"),
-                      config.get("Email", "ssh_tunnel_key_directory"))
+    ssh_tunnel = (config.get("Email", "ssh_tunnel_host"),
+                  config.get("Email", "ssh_tunnel_port"),
+                  config.get("Email", "ssh_tunnel_username"),
+                  config.get("Email", "ssh_tunnel_key_directory"))
 
-        # send the email
-        try:
-            send_email(config.get("Email", "host"), config.get("Email", "port"),
-                       config.get("Email", "username"), config.get("Email", "recipient"),
-                       config.get("Email", "username"), config.get("Email", "recipient"),
-                       email_body, subject, tunnel=ssh_tunnel)
+    # send the email
+    try:
+        send_email(config.get("Email", "host"), config.get("Email", "port"),
+                   config.get("Email", "username"), config.get("Email", "recipient"),
+                   config.get("Email", "username"), config.get("Email", "recipient"),
+                   email_body, subject, tunnel=ssh_tunnel)
 
-        except:
-            raise
-        else:
-            # if the email has sent, update the database
-            db.update_result_email(block, email_val=True)
-            _logger.debug("Successfully updated the database")
+    except:
+        raise
+    else:
+        # if the email has sent, update the database
+        db.update_result_email(block, email_val=True)
+        _logger.debug("Successfully updated the database")
 
 
 def query_db_and_write(config, write_path):
@@ -108,20 +106,19 @@ def query_db_and_write(config, write_path):
     _logger.info("Fetching the results that have not been emailed and writing the emails we would send to a file")
 
     # establish connection with database
-    with database_connection(config):
-        db = Database(config)
+    db = Database(config)
 
-        # get the blocks that need to be emailed
-        blocks_to_email = db.get_results_to_email()
+    # get the blocks that need to be emailed
+    blocks_to_email = db.get_results_to_email()
 
-        _logger.info("There are %s blocks to email" % len(blocks_to_email))
+    _logger.info("There are %s blocks to email" % len(blocks_to_email))
 
-        if len(blocks_to_email) == 0:
-            _logger.info("No emails to send, terminating...")
+    if len(blocks_to_email) == 0:
+        _logger.info("No emails to send, terminating...")
 
-        for block in blocks_to_email:
-            # format the body of the "email"
-            email_body = format_email(block)
+    for block in blocks_to_email:
+        # format the body of the "email"
+        email_body = format_email(block)
 
-            # write the "email" to a file
-            write_to_file(email_body, write_path + str(block.start_time) + "_" + str(block.stop_time))
+        # write the "email" to a file
+        write_to_file(email_body, write_path + str(block.start_time) + "_" + str(block.stop_time))
