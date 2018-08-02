@@ -43,10 +43,8 @@ def query_db_and_send_emails(config):
     if len(blocks_to_email) == 0:
         _logger.info("No emails to send, terminating...")
 
-    ssh_tunnel = (config.get("Email", "ssh_tunnel_host"),
-                  config.get("Email", "ssh_tunnel_port"),
-                  config.get("Email", "ssh_tunnel_username"),
-                  config.get("Email", "ssh_tunnel_key_directory"))
+    # if we need to open an ssh tunnel to send the email (see send_email() in send_email.py) set up the ssh_tunnel
+    # here and send tunnel=ssh_tunnel to send_email
 
     for block in blocks_to_email:
 
@@ -58,7 +56,7 @@ def query_db_and_send_emails(config):
         try:
             send_email(config.get("Email", "host"), config.get("Email", "port"),
                        config.get("Email", "username"), email_body, config.get("Email", "recipient"),
-                       subject, tunnel=ssh_tunnel)
+                       subject)
         except:
             raise
         else:
@@ -80,16 +78,14 @@ def send_email_and_update_db(block, config):
     email_body = format_email(block)
     subject = "LTF_REAL_TIME RESULT"
 
-    ssh_tunnel = (config.get("Email", "ssh_tunnel_host"),
-                  config.get("Email", "ssh_tunnel_port"),
-                  config.get("Email", "ssh_tunnel_username"),
-                  config.get("Email", "ssh_tunnel_key_directory"))
+    # if we need to open an ssh tunnel to send the email (see send_email() in send_email.py) set up the ssh_tunnel
+    # here and send tunnel=ssh_tunnel to send_email
 
     # send the email
     try:
         send_email(config.get("Email", "host"), config.get("Email", "port"),
                    config.get("Email", "username"), email_body, config.get("Email", "recipient"),
-                   subject, tunnel=ssh_tunnel)
+                   subject)
 
     except:
         raise

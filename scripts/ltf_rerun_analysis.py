@@ -19,7 +19,6 @@ from fermi_blind_search import myLogging
 from fermi_blind_search.send_email import send_email
 
 
-
 def check_new_data(met_start, met_stop, counts, ssh_host, config, logger):
 
     logger.info("Checking if there is new data for the analysis with the parameters: met_start: %s met_stop: %s, "
@@ -39,6 +38,12 @@ def check_new_data(met_start, met_stop, counts, ssh_host, config, logger):
         logger.info("Updating the database to reflect the new number of counts. The parameters are: met_start %s, "
                     "duration: %s, counts %s" % (met_start, float(met_stop) - float(met_start), number_of_counts))
         with database_connection(configuration):
+            """
+            With the current configuration of the real time search, tunneling is handled using an autossh connection
+            established when a job is started on the farm. So database_connection just returns a plain database connection
+            with no tunneling. To open a connection with tunneling, see the context manager in database.py and set up your
+            configuration file accordingly  
+            """
             db = Database(config)
             db.update_analysis_counts(met_start, float(met_stop) - float(met_start), number_of_counts)
     else:
@@ -53,7 +58,7 @@ def check_new_data(met_start, met_stop, counts, ssh_host, config, logger):
 def get_data(data_path, met_start, met_stop, config, logger):
 
     logger.info("Fetching data for the analysis with the parameters: met_start: %s met_stop: %s, " % (met_start,
-                                                                                                     met_stop))
+                                                                                                      met_stop))
     # make directory to store the data
     make_dir_if_not_exist(data_path)
 
@@ -83,7 +88,6 @@ def run_ltf_search(workdir, outfile, logfile, logger):
                             fit_file_path, configuration.config_file, outfile, logfile, workdir))
 
     logger.info("ltf_search_for_transients command line: %s" % ltf_search_cmd_line)
-
 
     try:
         # call ltf_seach_for_transients
@@ -118,8 +122,6 @@ if __name__ == "__main__":
     parser.add_argument('--counts', help='the counts used in the previous version of the analysis', type=int,
                         required=True)
     parser.add_argument('--directory', help='Path to the directory', type=str, required=True)
-    # parser.add_argument('--outfile', help='Path to the outfile', type=str, required=True)
-    # parser.add_argument('--logfile', help='Path to the logfile', type=str, required=True)
     parser.add_argument('--config', help='Path to config file', type=get_config, required=True)
     parser.add_argument('--debug', help='Activate debugging messages', action='store_true', default=False)
 
@@ -212,16 +214,20 @@ if __name__ == "__main__":
         email_string = ("Starting a new analysis with the following parameters: \n met_start: %s \n met_stop: %s \n "
                         "jobID: %s" % (met_start, met_stop, unique_id))
 
-        ssh_tunnel = (configuration.get("Email", "ssh_tunnel_host"),
-                      configuration.get("Email", "ssh_tunnel_port"),
-                      configuration.get("Email", "ssh_tunnel_username"),
-                      configuration.get("Email", "ssh_tunnel_key_directory"))
+        # if we need to open an ssh tunnel to send the email (see send_email() in send_email.py) set up the ssh_tunnel
+        # here and send tunnel=ssh_tunnel to send_email
 
-        send_email(host, port, username, email_string, recipients, subject, tunnel=ssh_tunnel)
+        send_email(host, port, username, email_string, recipients, subject)
 
         try:
 
             with database_connection(configuration):
+                """
+                With the current configuration of the real time search, tunneling is handled using an autossh connection
+                established when a job is started on the farm. So database_connection just returns a plain database connection
+                with no tunneling. To open a connection with tunneling, see the context manager in database.py and set up your
+                configuration file accordingly  
+                """
                 logger.info("Database connection established")
 
                 # first actually fetch the data we will use as a single file
@@ -250,12 +256,10 @@ if __name__ == "__main__":
             recipients = configuration.get("Email", "recipient")
             subject = "ltf_rerun_analysis.py ERROR"
 
-            ssh_tunnel = (configuration.get("Email", "ssh_tunnel_host"),
-                          configuration.get("Email", "ssh_tunnel_port"),
-                          configuration.get("Email", "ssh_tunnel_username"),
-                          configuration.get("Email", "ssh_tunnel_key_directory"))
+            # if we need to open an ssh tunnel to send the email (see send_email() in send_email.py) set up the
+            # ssh_tunnel here and send tunnel=ssh_tunnel to send_email
 
-            send_email(host, port, username, error_msg, recipients, subject, tunnel=ssh_tunnel)
+            send_email(host, port, username, error_msg, recipients, subject)
 
         finally:
             # move back to where we were

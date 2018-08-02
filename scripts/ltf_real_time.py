@@ -58,6 +58,12 @@ def run_real_time_analysis(most_recent_event_time, start_rerun_interval, end_rer
 
     # start a connection with the database storing analysis and transient candidates
     with database_connection(configuration):
+        """
+        With the current configuration of the real time search, tunneling is handled using an autossh connection
+        established when a job is started on the farm. So database_connection just returns a plain database connection
+        with no tunneling. To open a connection with tunneling, see the context manager in database.py and set up your
+        configuration file accordingly  
+        """
         logger.debug("Connection to the database established")
         real_time_db = Database(configuration)
 

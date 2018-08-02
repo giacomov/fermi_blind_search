@@ -27,6 +27,12 @@ def database_connection(config):
 
     if config.get("SSH db tunnel", "remote_host") != '':
 
+        """
+        As of now, we are not using this in the real time search. Instead we are using an autossh connection to 
+        facilitate tunneling. However, we are keeping the code here in case an ssh tunnel needs to be established from
+        a python script in the future. 
+        """
+
         with sshtunnel.SSHTunnelForwarder(config.get("SSH db tunnel", "remote_host"),
                                           ssh_username=config.get("SSH db tunnel", "username"),
                                           host_pkey_directories=[

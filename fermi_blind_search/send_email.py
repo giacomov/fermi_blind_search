@@ -24,6 +24,11 @@ def send_email(*args, **kwargs):
     """
 
     if 'tunnel' in kwargs:
+        """
+        As of now, we are not using this functionality in the real time analysis and are opening an autossh connection
+        instead. However, if in the future, an ssh tunnel needs to be opened from a python script itself, this code
+        facilitates that
+        """
 
         # Open tunnel
         tunnel_host, tunnel_port, tunnel_username, key_directory = kwargs['tunnel']
