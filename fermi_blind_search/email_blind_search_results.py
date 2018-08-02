@@ -57,8 +57,8 @@ def query_db_and_send_emails(config):
         # send the email
         try:
             send_email(config.get("Email", "host"), config.get("Email", "port"),
-                       config.get("Email", "username"), config.get("Email", "recipient"),
-                       email_body, subject, tunnel=ssh_tunnel)
+                       config.get("Email", "username"), email_body, config.get("Email", "recipient"),
+                       subject, tunnel=ssh_tunnel)
         except:
             raise
         else:
@@ -88,8 +88,8 @@ def send_email_and_update_db(block, config):
     # send the email
     try:
         send_email(config.get("Email", "host"), config.get("Email", "port"),
-                   config.get("Email", "username"), config.get("Email", "recipient"),
-                   email_body, subject, tunnel=ssh_tunnel)
+                   config.get("Email", "username"), email_body, config.get("Email", "recipient"),
+                   subject, tunnel=ssh_tunnel)
 
     except:
         raise
