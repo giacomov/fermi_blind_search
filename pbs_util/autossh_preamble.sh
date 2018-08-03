@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ~/.bashrc
+#source ~/.bashrc
 
 #Setup the MySQL port forwarding. Note that this will fail cleanly
 #when the port forwarding is already active
