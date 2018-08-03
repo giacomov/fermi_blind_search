@@ -10,3 +10,5 @@ export AUTOSSH_POLL=10
 
 #Setup SMTP port forwarding.
 /storage/applications/autossh/build-1.4c/bin/autossh -f -M 5000 -L 65530:localhost:25 -N galprop-cluster.stanford.edu
+
+exit 0
