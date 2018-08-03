@@ -59,6 +59,9 @@ def _send_email(host, port, username, email_string, recipients, subject):
 
     # recipients should be a string of the form "person1@email.com,person2@email.com"
 
+    _logger.info(" In email Params: host: %s, port: %s, username: %s, email_string: %s, recipients: %s, subject: %s" %
+                 (host, port, username, email_string, recipients, subject))
+
     # open the smtp email server
     server = smtplib.SMTP(host, port=int(port))
 
