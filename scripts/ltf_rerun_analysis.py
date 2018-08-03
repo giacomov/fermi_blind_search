@@ -217,7 +217,7 @@ if __name__ == "__main__":
         # if we need to open an ssh tunnel to send the email (see send_email() in send_email.py) set up the ssh_tunnel
         # here and send tunnel=ssh_tunnel to send_email
         logger.info("Email parameters: host: %s, port %s, username: %s" % (host, port, username))
-        send_email(host, port, username, email_string, recipients, subject)
+        send_email(host, int(port), username, email_string, recipients, subject)
 
         try:
 
