@@ -140,6 +140,10 @@ if __name__ == "__main__":
 
     logger.debug("Arguments: %s" % (args.__dict__))
 
+    # TODO: Remove this later, just to test email functionality:
+    send_email('localhost', 65530, 'ltf_blind@galprop-cluster.stanford.edu', 'TEST',
+                          'demaria.jamie@gmail.com', "TESTING")
+
     # get the configuration object
     configuration = args.config
 
