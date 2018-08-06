@@ -136,6 +136,9 @@ class FitsFile(object):
 
                                 ra_c, dec_c, radius = cone
 
+                                print("Applying cone filter: (R.A., Dec) = (%.3f, %.3f), radius = %.3f deg" % (
+                                ra_c, dec_c, radius))
+
                                 data = fits['EVENTS'].read(rows=indexes_to_keep, columns=['RA', 'DEC'])
 
                                 distances = angular_distance_fast(ra_c, dec_c, data['RA'], data['DEC'])

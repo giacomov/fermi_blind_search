@@ -180,39 +180,30 @@ class AllSkySearch(object):
         thisLogger.info("Elapsed time: %s" % (stop - start))
 
         interestingIntervals = []
+
         self.excludedBecauseOfDuration = 0
+
         for k in results:
-            try:
-                # Get all the time intervals from the excesses for this RA,Dec point
-                intervals = map(lambda x: (x.timeInterval.tstart, x.timeInterval.tstop), k)
-            except:
+
+            if k == [[]]:
+
+                # This ROI had zero counts, nothing to do
                 continue
-            if (len(intervals) > 1):
+
+            # Get all the time intervals from the excesses for this RA,Dec point
+            intervals = map(lambda x: (x.timeInterval.tstart, x.timeInterval.tstop), k)
+
+            # If there is more than one block we might have found something
+
+            if len(intervals) > 1:
+
                 interestingIntervals.append(k)
-            elif (len(intervals) == 0):
-                continue
+
             else:
-                thisInterval = k[0]
 
-                print("Observed: %s, expected: %s (p = %s)" % (
-                thisInterval.nobs, thisInterval.npred, thisInterval.probability))
+                # Nothing found
 
-                if (thisInterval.probability <= self.nullHypProb):
-
-                    if (thisInterval.timeInterval.tstop - thisInterval.timeInterval.tstart >= float(
-                            configuration.get("Analysis", "Max_duration"))):
-                        print(
-                        "Interval excluded because the duration is larger than the Max_duration value in configuration")
-                        self.excludedBecauseOfDuration += 1
-                        continue
-                    pass
-
-                    # Save it nevertheless
-                    interestingIntervals.append(k)
-                pass
-
-            pass
-        pass
+                continue
 
         thisLogger.info("Found %s interesting intervals" % (len(interestingIntervals)))
 
@@ -390,22 +381,22 @@ def getID():
 
 def worker(args):
     # sys.stderr.write("Worker start")
-    r, d, rr, a, t, p = args
-    grbRoi = SearchRegion(r, d, rr, a, t)
-    try:
-        counts = grbRoi.applySelection()
-    except ltfException as e:
-        sys.stderr.write(e.message)
-        # sys.stderr.write("Worker end")
-        return [[]]
-    except:
-        raise
 
-    if (counts == 0):
+    r, d, rr, a, t, p = args
+
+    grbRoi = SearchRegion(r, d, rr, a, t)
+
+    counts = grbRoi.applySelection()
+
+    if counts == 0:
+
+        # Nothing to do
+
         res = [[]]
+
     else:
+
         res = grbRoi.searchForExcesses(p)
-    pass
 
     grbRoi.done()
     # sys.stderr.write("Worker end")
@@ -578,6 +569,10 @@ class Selector(object):
                                                                           'rad': self.rad,
                                                                           'thetamax': self.analysisDef.thetamax}
 
+
+        print("Applying GTI filter:")
+        print("%s" % filter_expression)
+
         gti_file = "__GTI.fit"
 
         gti_starts, gti_stops = make_GTI_from_FT2(self.timeInterval.ft2, filter_expression, gti_file, overwrite=True,
@@ -591,9 +586,10 @@ class Selector(object):
 
             return "", 0
 
-        gti_filter = "gtifilter('%s')" % gti_file
+        gti_filter = "gtifilter('%s') && gtifilter('%s')" % (gti_file, self.timeInterval.ft1)
         energy_filter = "(ENERGY >= %s) && (ENERGY <= %s)" % (self.analysisDef.emin, self.analysisDef.emax)
-        flt = '(%s) && (%s)' % (energy_filter, gti_filter)
+        time_filter = "(TIME >= %s) && (TIME <= %s)" % (tstart, tstop)
+        flt = '(%s) && (%s) && (%s)' % (energy_filter, time_filter, gti_filter)
 
         # Apply filter
         thisEventFile = 'filt_ft1_%s.fit' % self.uid
@@ -609,37 +605,6 @@ class Selector(object):
 
         update_GTIs(thisEventFile, gti_starts, gti_stops)
 
-        # latData = dataHandling.LATData(self.timeInterval.ft1,
-        #                                self.timeInterval.ft1,
-        #                                self.timeInterval.ft2,
-        #                                self.uid)
-        #
-        # try:
-        #     thisEventFile2, nEvents2 = latData.performStandardCut(self.ra,
-        #                                                         self.dec,
-        #                                                         self.rad,
-        #                                                         self.analysisDef.irf,
-        #                                                         tstart,
-        #                                                         tstop,
-        #                                                         self.analysisDef.emin,
-        #                                                         self.analysisDef.emax,
-        #                                                         self.analysisDef.zmax,
-        #                                                         self.analysisDef.thetamax,
-        #                                                         gtmktime=True)
-        #
-        # except GtBurstException as gtburstError:
-        #
-        #     if (gtburstError.code in [14, 2, 21, 22, 23]):
-        #         # gtmktime or gtselect returned 0 events or 0 rows,
-        #         # i.e., this is an empty ROI
-        #         return None, 0
-        #     else:
-        #         print("\n\nGTSELECT FAILED\n\n")
-        #         return None, 0
-        # pass
-        #
-        # assert nEvents == nEvents2
-
         # Open the file just produced, fix it and get some info
         with pyfits.open(thisEventFile, mode='update') as f:
 
@@ -651,6 +616,8 @@ class Selector(object):
             f['EVENTS'].header['DSTYP9'] = 'POS(RA,DEC)'
             f['EVENTS'].header['DSUNI9'] = 'deg'
             f['EVENTS'].header['DSVAL9'] = 'circle(%s,%s,%s)' % (self.ra, self.dec, self.rad)
+
+        print("Events in FT1 file: %s" % nEvents)
 
         return thisEventFile, nEvents
 

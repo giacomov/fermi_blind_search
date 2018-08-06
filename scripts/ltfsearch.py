@@ -168,14 +168,14 @@ if __name__ == '__main__':
                      'rad': 180.0,
                      'tmin': met_start,
                      'tmax': met_stop,
-                     'emin': 0.0,
-                     'emax': 0.0,
+                     'emin': configuration.get("Analysis", "emin"),
+                     'emax': configuration.get("Analysis", "emax"),
                      'zmin': 0.0,
                      'zmax': 180.0,
                      'evclass': IRFS.IRFS[gtburstIrf].evclass,
                      'evtype': 'INDEF',
                      'clobber': 'yes'}
-    logger.info("Preselecing events belonging to IRF %s..." % gtburstIrf)
+    logger.info("Preselecting events belonging to IRF %s..." % gtburstIrf)
     GtApp.GtApp('gtselect').run(**gtselect_args)
 
     # Get number of cpus to use
@@ -200,7 +200,7 @@ if __name__ == '__main__':
 
     spread, medianDistance = computeSpread(numpy.vstack([ras, decs]).T)
 
-    # idx = (numpy.abs(ras - 119.8) < 15) & (numpy.abs(decs+56.6) < 15)
+    # idx = (numpy.abs(ras - 174.450) < 1) & (numpy.abs(decs-73.5) < 1)
     # ras = ras[idx]
     # decs = decs[idx]
     # ras = numpy.array([275.072875977])

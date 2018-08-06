@@ -592,7 +592,7 @@ class ROIBackgroundEstimator(object):
 
         self.dataTheta[idx] = 180.0
 
-        print("Covering time interval %s - %s" % (start.min(), start.max()))
+        print("FT2 covering time interval %s - %s" % (start.min(), start.max()))
 
         lookup_table_file = get_theta_lookup_file(self.dataFt1.ra, self.dataFt1.dec)
 
@@ -657,7 +657,7 @@ class ROIBackgroundEstimator(object):
         # Theta from the data
 
         self.dataThetaInterpolator = scipy.interpolate.InterpolatedUnivariateSpline(
-            start, self.dataTheta, k=3)
+            start, self.dataTheta, k=1)
 
         # Livetime from the data
 
@@ -698,10 +698,12 @@ class ROIBackgroundEstimator(object):
             padded_gti_t2 = gti_t2 - 0.2
             
             # Modify the binsize so we end always exactly at the end of the padded GTI
-            
-            nbins = int(numpy.ceil((padded_gti_t2 - gti_t1) / binsize))
+            # (we wrap in a max() call so that we will always have at least 2 bins)
+            nbins = max(2, int(numpy.ceil((padded_gti_t2 - gti_t1) / binsize)))
 
             this_times = numpy.linspace(gti_t1, padded_gti_t2, nbins)
+
+            new_binsize = this_times[1] - this_times[0]
 
             #this_lc = numpy.zeros_like(this_times)
 
@@ -709,7 +711,7 @@ class ROIBackgroundEstimator(object):
 
             assert numpy.alltrue(theta <= 80), "You have to cut your data with gtmktime and a theta cut of 65 at most!"
 
-            this_lc = self.rateInterpolator(theta) * self.dataLivetimeFractionInterpolator(this_times)
+            this_lc = self.rateInterpolator(theta) * self.dataLivetimeFractionInterpolator(this_times) * new_binsize
 
             # for i, t in enumerate(this_times):
             #
@@ -739,6 +741,10 @@ class ROIBackgroundEstimator(object):
                         
             times.append(gti_t2)
             lc.append(0.0)
+
+            exposure = numpy.sum(self.dataLivetimeFractionInterpolator(this_times) * new_binsize)  # type: float
+
+            print("Exposure in GTI %.3f-%.3f = %.3f, duration = %.3f" % (gti_t1, gti_t2, exposure, gti_t2 - gti_t1))
 
         return numpy.array(times), numpy.array(lc)
 
