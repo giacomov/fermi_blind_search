@@ -13,8 +13,23 @@ def format_email(block):
 
     _logger.info("Formatting the email body for the block: %s" % block)
 
+    # Todo: get name of algorithm
+    # we subtract 0.001 from the start time so that the NAME OF ALGORITHM analyzes data that inlcudes our entire range
+    start_time = block.met_start - 0.001
+
+    # we want to round the duration up to 1 significant figure, ex. 729374.038484 -> 800000
+    # From some quick research, there isn't a built in or library function that does this operation so we do it manually
+
+    # converting to an int removes the decimal part, then converting to a string allows us to know how many digits
+    # the number has.
+    duration = str(int(block.interval))
+
+    # we want to get the first digit and add 1 (to round up) and then expand the number back out to have the correct
+    # magnitude
+    duration = (int(duration[0]) + 1) * 10*(len(duration) - 1)
+
     string = ('TITLE: GCN/GBM NOTICE \nNOTICE_TYPE: User-supplied job \nGRB_RA: %s \nGRB_DEC: %s \nGRB_MET: %s \nANALYSIS_INTERVAL: %s\n'
-              % (str(block.ra), str(block.dec), str(block.met_start), str(block.interval)))
+              % (str(block.ra), str(block.dec), str(start_time), str(duration)))
 
     return string
 
