@@ -245,6 +245,9 @@ if __name__ == '__main__':
 
         prepare_figures = False
 
+    #TODO: remove once done creating images
+    prepare_figures = True
+
     interestingIntervals, figs = ltf.go(prepare_figures)
     logger.info("done")
     logger.info("Excluded %s single intervals because their duration is longer than the maximum one (%s s)" % (
