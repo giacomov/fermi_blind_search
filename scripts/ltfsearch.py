@@ -235,6 +235,10 @@ if __name__ == '__main__':
     logger.info("Searching for excesses in %s regions with %s CPUs..." % (ras.shape[0], ncpus))
 
     interestingIntervals, figs = ltf.go(prepare_figures=True)
+
+    for i in range(len(figs)):
+        figs[i].savefig("img_%s" % i)
+
     logger.info("done")
     logger.info("Excluded %s single intervals because their duration is longer than the maximum one (%s s)" % (
         ltf.getExcludedBecauseOfDuration(),
