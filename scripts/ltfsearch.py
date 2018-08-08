@@ -234,21 +234,7 @@ if __name__ == '__main__':
 
     logger.info("Searching for excesses in %s regions with %s CPUs..." % (ras.shape[0], ncpus))
 
-    if args.outfile is None:
-
-        # Using the data base, prepare figures
-        prepare_figures = True
-
-    else:
-
-        # Not using the database. We can avoid preparing figures...
-
-        prepare_figures = False
-
-    #TODO: remove once done creating images
-    prepare_figures = True
-
-    interestingIntervals, figs = ltf.go(prepare_figures)
+    interestingIntervals, figs = ltf.go(prepare_figures=True)
     logger.info("done")
     logger.info("Excluded %s single intervals because their duration is longer than the maximum one (%s s)" % (
         ltf.getExcludedBecauseOfDuration(),

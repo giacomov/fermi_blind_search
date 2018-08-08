@@ -33,6 +33,7 @@ from fermi_blind_search.SkyDir import SkyDir
 from fermi_blind_search.bkge import ROIBackgroundEstimator
 from fermi_blind_search.fits_handling.fits import FitsFile, make_GTI_from_FT2, update_GTIs
 from fermi_blind_search.fits_handling.fits_interface import pyfits
+from fermi_blind_search.plot_counts_map import plot_counts_map
 
 
 try:
@@ -630,7 +631,7 @@ class Excess(Selector):
         if hasattr(self, 'npred') and hasattr(self, 'nobs'):
             self.probability = self._poissonProbability()
         else:
-            raise ltfExcess("Cannot compute probability without npred and nobs")
+            raise ltfException("Cannot compute probability without npred and nobs")
         pass
 
         return self.probability
@@ -671,25 +672,13 @@ class Excess(Selector):
         # Select
         thisEventFile, _ = self._select(self.timeInterval.tstart, self.timeInterval.tstop)
 
-        latData = dataHandling.LATData(thisEventFile,
-                                       thisEventFile,
-                                       self.timeInterval.ft2,
-                                       self.uid)
+        with pyfits.open(thisEventFile) as fits_file:
 
-        outfile = "__%s_skymap.fits" % (self.uid)
-        latData.doSkyMap(outfile, binsz=0.2, fullsky=False)
+            image = plot_counts_map(fits_file['EVENTS'].field("RA"), fits_file['EVENTS'].field("DEC"),
+                                    self.rad * 6.0, 0.2, 4.0)
 
-        if (clustering != None):
-            data = pyfits.getdata(thisEventFile)
-            alg = getClusteringAlgorithm(clustering)
-            clusters = alg.getClusters(data.field("RA"), data.field("DEC"), data.field("ENERGY"))
-        else:
-            clusters = []
-        pass
-
-        # Generate the figure
-        image = plotFitsCountsmap(outfile, "%.2f - %.2f" % (self.timeInterval.tstart, self.timeInterval.tstop))
-        os.remove(outfile)
+        # Once upon a time we were using dbscan
+        clusters = []
 
         return image, clusters
 
