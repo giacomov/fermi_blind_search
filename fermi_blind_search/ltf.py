@@ -227,7 +227,7 @@ class AllSkySearch(object):
             for j, inte in enumerate(interestingIntervals):
                 for i, intee in enumerate(inte):
                     img, clusters = intee.getImage()
-                    img.save("_%s.png" % i)
+                    img.savefig("_%s.png" % i)
                     plt.close()
     
                 if (len(inte) > 1):
@@ -674,7 +674,7 @@ class Excess(Selector):
 
         with pyfits.open(thisEventFile) as fits_file:
 
-            image = plot_counts_map(fits_file['EVENTS'].data.field("RA"), 
+            image = plot_counts_map(fits_file['EVENTS'].data.field("RA"),
                                     fits_file['EVENTS'].data.field("DEC"),
                                     self.rad * 6.0, 0.2, 4.0)
 
