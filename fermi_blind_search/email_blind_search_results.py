@@ -22,11 +22,13 @@ def format_email(block):
 
     # converting to an int removes the decimal part, then converting to a string allows us to know how many digits
     # the number has.
+
     duration = str(int(block.interval))
 
     # we want to get the first digit and add 1 (to round up) and then expand the number back out to have the correct
     # magnitude
-    duration = (int(duration[0]) + 1) * 10*(len(duration) - 1)
+
+    duration = (int(duration[0]) + 1) * 10**(len(duration) - 1)
 
     string = ('TITLE: GCN/GBM NOTICE \nNOTICE_TYPE: User-supplied job \nGRB_RA: %s \nGRB_DEC: %s \nGRB_MET: %s \nANALYSIS_INTERVAL: %s\n'
               % (str(block.ra), str(block.dec), str(start_time), str(duration)))
