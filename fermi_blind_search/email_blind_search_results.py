@@ -65,7 +65,7 @@ def query_db_and_send_emails(config):
 
         # format the body of the email
         email_body = format_email(block)
-        subject = "LTF_REAL_TIME RESULT"
+        subject = config.get("Email", "subject")
 
         # send the email
         try:
@@ -91,7 +91,7 @@ def send_email_and_update_db(block, config):
     db = Database(config)
     # format the body of the email
     email_body = format_email(block)
-    subject = "LTF_REAL_TIME RESULT"
+    subject = config.get("Email", "subject")
 
     # if we need to open an ssh tunnel to send the email (see send_email() in send_email.py) set up the ssh_tunnel
     # here and send tunnel=ssh_tunnel to send_email
