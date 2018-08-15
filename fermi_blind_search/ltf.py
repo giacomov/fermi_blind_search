@@ -75,7 +75,7 @@ def get_IAU_name(ra,dec):
 
     iau = re.sub('([^0-9\-\.])', "", direction.to_string('hmsdms', precision=2))
 
-    return "LTF %s" % iau
+    return "LTF%s" % iau
 
 
 def getConnectionToResultsStorage():

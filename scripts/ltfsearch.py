@@ -6,6 +6,7 @@ import time
 from fermi_blind_search.date2met_converter import convert_date
 from fermi_blind_search.data_files import get_data_file_path
 from fermi_blind_search.configuration import get_config
+import glob
 from GtBurst import IRFS
 import GtApp
 
@@ -236,9 +237,6 @@ if __name__ == '__main__':
 
     interestingIntervals, figs = ltf.go(prepare_figures=True)
 
-    for i in range(len(figs)):
-        figs[i].savefig("img_%s" % i)
-
     logger.info("done")
     logger.info("Excluded %s single intervals because their duration is longer than the maximum one (%s s)" % (
         ltf.getExcludedBecauseOfDuration(),
@@ -261,5 +259,18 @@ if __name__ == '__main__':
     logger.info("Finished")
     clockstop = time.time()
     delta = clockstop - clockstart
+
+    # Remove temporary files
+    temp_files = glob.glob("_*")
+
+    for temp_file in temp_files:
+
+        try:
+
+            os.remove(temp_file)
+
+        except IOError:
+
+            pass
 
     logger.info("Execution time: %s (h:m:s)" % (str(datetime.timedelta(seconds=delta))))

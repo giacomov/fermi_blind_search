@@ -11,12 +11,14 @@
     and secondarily by the count rate in the highest count-density bin"""
 
 import numpy as np
+import os
 # from math import *
 import argparse
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
 from fermi_blind_search.configuration import get_config
+from fermi_blind_search import myLogging
 
 
 def dist(region1, region2):
@@ -212,6 +214,8 @@ if __name__ == "__main__":
     # parse the arguments
     args = parser.parse_args()
 
+    logger = myLogging.log.getLogger("ltf_remove_redundant_triggers.py")
+
     # get input data file from parser and convert to record array
     data = np.recfromtxt(args.in_list, dtype=[('name', 'S50'),
                                               ('ra', float),
@@ -226,12 +230,39 @@ if __name__ == "__main__":
         # an array of lines, but just one line. Fix that
         data = np.array([data])
 
+    logger.info("Found %s triggers in input" % data.shape[0])
+
     # check for multiple triggers by same event,
     configuration = args.config
     min_dist = float(configuration.get("Post processing", "cluster_distance"))
     result = check_nearest(data, min_dist)
 
-    # import pdb;pdb.set_trace()
+    # Check if we have removed entries, and if we did, remove also the corresponding figures
+    names = map(lambda x:x[0], result)
+
+    for this_name in data['names']:
+
+        if this_name not in names:
+
+            logger.info("Removed trigger %s" % this_name)
+
+            image_filename = "%s.png" % this_name
+
+            if os.path.exists(image_filename):
+
+                try:
+
+                    os.remove(image_filename)
+
+                except:
+
+                    logger.debug("Couldn't remove %s" % image_filename)
+
+                else:
+
+                    logger.debug("Removed %s" % image_filename)
+
+    logger.info("Kept %s candidates" % len(result))
 
     # create output file
     with open(args.out_list, 'w+') as f:
