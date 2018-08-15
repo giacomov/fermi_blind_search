@@ -256,7 +256,7 @@ if __name__ == "__main__":
 
                 except:
 
-                    logger.debug("Couldn't remove %s" % image_filename)
+                    logger.info("Couldn't remove %s" % image_filename)
 
                 else:
 
