@@ -24,7 +24,7 @@ COORDSYS= '%s'
 """
 
 
-def plot_counts_map(ra, dec, side, pixel_size, smoothing_kernel):
+def plot_counts_map(ra, dec, side, pixel_size, smoothing_kernel=0.0):
     """
     Plot a counts map
 
@@ -59,9 +59,17 @@ def plot_counts_map(ra, dec, side, pixel_size, smoothing_kernel):
 
     img[j[idx].astype(int), i[idx].astype(int)] += 1
 
-    kernel = Gaussian2DKernel(smoothing_kernel)
+    if smoothing_kernel > 0.0:
 
-    img_conv = convolve(img, kernel)  # type: np.ndarray
+        kernel = Gaussian2DKernel(smoothing_kernel)
+
+        img_conv = convolve(img, kernel)  # type: np.ndarray
+
+    else:
+
+        # No smoothing
+
+        img_conv = img
 
     fig = plt.figure()
     sub = fig.add_subplot(111, projection=w)

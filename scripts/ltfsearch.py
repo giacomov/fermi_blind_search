@@ -250,7 +250,7 @@ if __name__ == '__main__':
 
     else:
 
-        ltf.save_to_file(args.outfile)
+        ltf.save_to_file(args.outfile, figures=True)
 
     logger.info("done")
 

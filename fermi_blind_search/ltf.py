@@ -262,7 +262,7 @@ class AllSkySearch(object):
     def getExcludedBecauseOfDuration(self):
         return self.excludedBecauseOfDuration
 
-    def save_to_file(self, filename):
+    def save_to_file(self, filename, figures=True):
 
         # Each candidate transient corresponds to a row in the output file
 
@@ -305,6 +305,15 @@ class AllSkySearch(object):
             f.write("\n".join(candidate_transients))
 
             f.write("\n")
+
+        if figures:
+
+            # Save figures for interesting intervals
+            for inte, fig in zip(self.interestingIntervals, self.figs):
+
+                name = get_IAU_name(inte[0].ra, inte[0].dec)
+
+                fig.savefig("%s.png" % name)
 
     def save(self):
         '''Save in the database
