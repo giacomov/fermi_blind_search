@@ -260,17 +260,4 @@ if __name__ == '__main__':
     clockstop = time.time()
     delta = clockstop - clockstart
 
-    # Remove temporary files
-    temp_files = glob.glob("_*")
-
-    for temp_file in temp_files:
-
-        try:
-
-            os.remove(temp_file)
-
-        except:
-
-            pass
-
     logger.info("Execution time: %s (h:m:s)" % (str(datetime.timedelta(seconds=delta))))
