@@ -242,7 +242,7 @@ if __name__ == '__main__':
         ltf.getExcludedBecauseOfDuration(),
         configuration.get('Analysis', "Max_duration")))
 
-    logger.info("Saving %s interesting intervals..." % (len(interestingIntervals)))
+    logger.info("Saving %s interesting regions..." % (len(interestingIntervals)))
 
     if args.outfile is None:
 

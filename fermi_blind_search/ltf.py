@@ -180,7 +180,7 @@ class AllSkySearch(object):
         stop = time.time()
         thisLogger.info("Elapsed time: %s" % (stop - start))
 
-        interestingIntervals = []
+        interestingRegions = []
 
         self.excludedBecauseOfDuration = 0
 
@@ -198,7 +198,7 @@ class AllSkySearch(object):
 
             if len(intervals) > 1:
 
-                interestingIntervals.append(k)
+                interestingRegions.append(k)
 
             else:
 
@@ -206,10 +206,10 @@ class AllSkySearch(object):
 
                 continue
 
-        thisLogger.info("Found %s interesting intervals" % (len(interestingIntervals)))
+        thisLogger.info("Found %s interesting regions" % (len(interestingRegions)))
 
         # Re-activate the interesting intervals
-        for inte in interestingIntervals:
+        for inte in interestingRegions:
             for intee in inte:
                 intee.restore()
 
@@ -224,7 +224,7 @@ class AllSkySearch(object):
         
             thisLogger.info("Preparing figures...")
             
-            for j, inte in enumerate(interestingIntervals):
+            for j, inte in enumerate(interestingRegions):
                 for i, intee in enumerate(inte):
                     img, clusters = intee.getImage()
                     img.savefig("_%s.png" % i)
@@ -253,9 +253,9 @@ class AllSkySearch(object):
             thisLogger.info("Figures are not requested. Skipping...")
 
         self.figs = figs
-        self.interestingIntervals = interestingIntervals
+        self.interestingIntervals = interestingRegions
 
-        return interestingIntervals, figs
+        return interestingRegions, figs
 
     pass
 
