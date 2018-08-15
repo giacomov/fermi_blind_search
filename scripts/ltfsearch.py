@@ -269,7 +269,7 @@ if __name__ == '__main__':
 
             os.remove(temp_file)
 
-        except IOError:
+        except:
 
             pass
 
