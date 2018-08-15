@@ -215,6 +215,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     logger = myLogging.log.getLogger("ltf_remove_redundant_triggers.py")
+    myLogging.set_level("INFO")
 
     # get input data file from parser and convert to record array
     data = np.recfromtxt(args.in_list, dtype=[('name', 'S50'),
@@ -240,7 +241,7 @@ if __name__ == "__main__":
     # Check if we have removed entries, and if we did, remove also the corresponding figures
     names = map(lambda x:x[0], result)
 
-    for this_name in data['names']:
+    for this_name in data['name']:
 
         if this_name not in names:
 
