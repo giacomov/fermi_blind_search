@@ -19,10 +19,10 @@ from fermi_blind_search import myLogging
 from fermi_blind_search.send_email import send_email
 
 
-def check_new_data(met_start, met_stop, counts, ssh_host, config, logger):
+def check_new_data(met_start, met_stop, old_counts, ssh_host, config, logger):
 
     logger.info("Checking if there is new data for the analysis with the parameters: met_start: %s met_stop: %s, "
-               "counts: %s" % (met_start, met_stop, counts))
+               "counts: %s" % (met_start, met_stop, old_counts))
 
     try:
         # call mdcget with --count to just return the counts in the time range
@@ -31,12 +31,12 @@ def check_new_data(met_start, met_stop, counts, ssh_host, config, logger):
     except:
         raise IOError("Could not get number of counts between %s and %s" % (met_start, met_stop))
 
-    number_of_counts = int(out.split()[-1])
+    new_counts = int(out.split()[-1])
 
-    if number_of_counts > counts:
+    if new_counts > old_counts:
 
         logger.info("Updating the database to reflect the new number of counts. The parameters are: met_start %s, "
-                    "duration: %s, counts %s" % (met_start, float(met_stop) - float(met_start), number_of_counts))
+                    "duration: %s, counts %s" % (met_start, float(met_stop) - float(met_start), new_counts))
         with database_connection(configuration):
             """
             With the current configuration of the real time search, tunneling is handled using an autossh connection
@@ -45,14 +45,14 @@ def check_new_data(met_start, met_stop, counts, ssh_host, config, logger):
             configuration file accordingly  
             """
             db = Database(config)
-            db.update_analysis_counts(met_start, float(met_stop) - float(met_start), number_of_counts)
+            db.update_analysis_counts(met_start, float(met_stop) - float(met_start), new_counts)
     else:
 
         logger.info("Number of counts from mdcget was %s, which is the same as in the database (%s), not updating the "
-                    "database")
+                    "database" % (new_counts, old_counts))
 
     # return True if there is new data, False if there is not
-    return number_of_counts > counts
+    return new_counts > old_counts
 
 
 def get_data(data_path, met_start, met_stop, config, logger):
@@ -139,10 +139,6 @@ if __name__ == "__main__":
         myLogging.set_level("INFO")
 
     logger.debug("Arguments: %s" % (args.__dict__))
-
-    # TODO: Remove this later, just to test email functionality:
-    send_email('localhost', 65530, 'ltf_blind@galprop-cluster.stanford.edu', 'TEST',
-                          'demaria.jamie@gmail.com', "TESTING")
 
     # get the configuration object
     configuration = args.config
