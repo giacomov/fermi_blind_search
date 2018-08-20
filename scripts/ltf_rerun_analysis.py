@@ -206,18 +206,18 @@ if __name__ == "__main__":
         logger.info("There is new data for this analysis so we continue with the analysis")
 
         # send an email to alert that a new analysis is being run
-        host = configuration.get("Email", "host")
-        port = configuration.get("Email", "port")
-        username = configuration.get("Email", "username")
-        recipients = configuration.get("Email", "recipient")
-        subject = "ltf_rerun_analysis.py STARTING"
-        email_string = ("Starting a new analysis with the following parameters: \n met_start: %s \n met_stop: %s \n "
-                        "jobID: %s" % (met_start, met_stop, unique_id))
-
-        # if we need to open an ssh tunnel to send the email (see send_email() in send_email.py) set up the ssh_tunnel
-        # here and send tunnel=ssh_tunnel to send_email
-        logger.info("Email parameters: host: %s, port %s, username: %s" % (host, port, username))
-        send_email(host, int(port), username, email_string, recipients, subject)
+        # host = configuration.get("Email", "host")
+        # port = configuration.get("Email", "port")
+        # username = configuration.get("Email", "username")
+        # recipients = configuration.get("Email", "recipient")
+        # subject = "ltf_rerun_analysis.py STARTING"
+        # email_string = ("Starting a new analysis with the following parameters: \n met_start: %s \n met_stop: %s \n "
+        #                 "jobID: %s" % (met_start, met_stop, unique_id))
+        #
+        # # if we need to open an ssh tunnel to send the email (see send_email() in send_email.py) set up the ssh_tunnel
+        # # here and send tunnel=ssh_tunnel to send_email
+        # logger.info("Email parameters: host: %s, port %s, username: %s" % (host, port, username))
+        # send_email(host, int(port), username, email_string, recipients, subject)
 
         try:
 
